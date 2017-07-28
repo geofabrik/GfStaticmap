@@ -21,7 +21,7 @@
  *
  * USAGE: 
  *
- *  staticmap.php?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=mapnik&markers=40.702147,-74.015794,blues|40.711614,-74.012318,greeng|40.718217,-73.998284,redc
+ *  staticmap.php?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=40.702147,-74.015794,redpin|40.711614,-74.012318,redpin|40.718217,-73.998284,redpin
  *
  */ 
 
