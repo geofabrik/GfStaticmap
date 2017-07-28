@@ -138,7 +138,7 @@ Class staticMapLite {
             if ($_GET['maptype'] == 'print') $this->tileSize = 1024;
             if ($_GET['maptype'] == 'print150') $this->tileSize = 512;
         }
-        if($_GET['nocache']){
+        if(isset($_GET['nocache'])){
             $this->doNotReadMapCache = true;
         }
     }
