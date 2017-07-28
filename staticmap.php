@@ -49,7 +49,7 @@ Class staticMapLite {
                 'textx' => 19,
                 'texty' => 16,
                 'textsize' => 12,
-                'font' => 'arialnb.ttf',
+                'font' => 'LiberationSans-Bold.ttf',
                 ),
             'print/redpin' => array (
                 'filename' => 'print/redpin.png',
@@ -60,7 +60,7 @@ Class staticMapLite {
                 'textx' => 75,
                 'texty' => 65,
                 'textsize' => 45,
-                'font' => 'arialnb.ttf',
+                'font' => 'LiberationSans-Bold.ttf',
                 ),
             'print150/redpin' => array (
                 'filename' => 'print150/redpin.png',
@@ -71,13 +71,13 @@ Class staticMapLite {
                 'textx' => 38,
                 'texty' => 33,
                 'textsize' => 23,
-                'font' => 'arialnb.ttf',
+                'font' => 'LiberationSans-Bold.ttf',
                 ),
             );
 
     protected $tileDefaultSrc = 'mapnik';
     protected $markerBaseDir = 'images';
-    protected $fontBaseDir = '.';
+    protected $fontBaseDir = 'fonts/';
     //protected $osmLogo = 'images/osm_logo.png';
 
     protected $useTileCache = false;
@@ -93,6 +93,9 @@ Class staticMapLite {
 
     protected $zoom, $lat, $lon, $width, $height, $markers, $image, $maptype;
     protected $centerX, $centerY, $offsetX, $offsetY;
+
+    /** Should an attribution text being added at the lower right corner of the image? */
+    protected $attribution = false;
 
     public function __construct(){
         $this->zoom = 0;
@@ -140,6 +143,9 @@ Class staticMapLite {
         }
         if(isset($_GET['nocache'])){
             $this->doNotReadMapCache = true;
+        }
+        if(isset($_GET['attribution']) and $_GET['attribution'] == 'true'){
+            $this->attribution = true;
         }
     }
 
@@ -276,10 +282,21 @@ Class staticMapLite {
         return $tile;
     }
 
-    public function copyrightNotice(){
-        $logoImg = imagecreatefrompng($this->osmLogo);
-        imagecopy($this->image, $logoImg, imagesx($this->image)-imagesx($logoImg), imagesy($this->image)-imagesy($logoImg), 0, 0, imagesx($logoImg), imagesy($logoImg));
-
+    /**
+     * Add the copyright notice to the lower right corner of the image.
+     *
+     * @param font truetype font file to be used, has to be located in the `fonts/` subdirectory
+     */
+    public function copyrightNotice($font){
+        $attributionText = '© OpenStreetMap contributors';
+        $bbox = imagettfbbox(8, 0, $this->fontBaseDir . '/' . $font, $attributionText);
+        $length = abs($bbox[4] - $bbox[0]);
+        $height = abs($bbox[5] - $bbox[1]);
+        $black = imagecolorallocate($this->image, 0, 0, 0);
+        $transparentWhite = imagecolorallocatealpha($this->image, 255, 255, 255, 60);
+        error_log('font: ' . $this->fontBaseDir.'/'.$font);
+        imagefilledrectangle($this->image, imagesx($this->image) - $length - 2, imagesy($this->image) - $height - 4, imagesx($this->image), imagesy($this->image), $transparentWhite);
+        imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1, imagesy($this->image) - 4, $black, $this->fontBaseDir.'/'.$font, $attributionText);
     }
 
     public function sendHeader(){
@@ -294,7 +311,7 @@ Class staticMapLite {
         $this->initCoords();		
         $this->createBaseMap();
         if(count($this->markers))$this->placeMarkers();
-        if($this->osmLogo) $this->copyrightNotice();
+        if($this->attribution) $this->copyrightNotice('NotoSansUI-Regular.ttf');
     }
 
     public function showMap(){
