@@ -21,7 +21,7 @@
  *
  * USAGE: 
  *
- *  staticmap.php?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=40.702147,-74.015794,redpin|40.711614,-74.012318,redpin|40.718217,-73.998284,redpin
+ *  staticmap.php?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=lat:40.702147,lon:-74.015794,image:redpin|lat:40.711614,lon:-74.012318,image:redpin|lat:40.718217,lon:-73.998284,image:redpin
  *
  */ 
 
@@ -29,73 +29,23 @@
 ini_set('display_errors','off');
 */
 
+require 'config.php';
 
-Class staticMapLite {
+function output_error($message) {
+    http_response_code(400);
+    header('Content-Type: text/plain');
+    $expires = 60*60*24*14;
+    header("Pragma: public");
+    header("Cache-Control: maxage=".$expires);
+    header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
+    print($message . "\n");
+    exit(0);
+}
 
-    protected $tileSize = 256;
-    protected $tileSrcUrl = array(
-            'print' => 'http://print.tile.geofabrik.de{P}/{Z}/{X}/{Y}.png',
-            'print150' => 'http://print.tile.geofabrik.de{P}/{Z}/{X}/{Y}.png',
-            'default' => 'http://tile.geofabrik.de{P}/{Z}/{X}/{Y}.png'
-            );
-
-    protected $markerLookup = array (
-            'default/redpin' => array (
-                'filename' => 'default/redpin.png',
-                'width' => 39,
-                'height' => 39,
-                'hotx' => 19,
-                'hoty' => 39,
-                'textx' => 19,
-                'texty' => 16,
-                'textsize' => 12,
-                'font' => 'LiberationSans-Bold.ttf',
-                ),
-            'print/redpin' => array (
-                'filename' => 'print/redpin.png',
-                'width' => 154,
-                'height' => 154,
-                'hotx' => 77,
-                'hoty' => 154,
-                'textx' => 75,
-                'texty' => 65,
-                'textsize' => 45,
-                'font' => 'LiberationSans-Bold.ttf',
-                ),
-            'print150/redpin' => array (
-                'filename' => 'print150/redpin.png',
-                'width' => 77 ,
-                'height' => 77,
-                'hotx' => 38,
-                'hoty' => 77,
-                'textx' => 38,
-                'texty' => 33,
-                'textsize' => 23,
-                'font' => 'LiberationSans-Bold.ttf',
-                ),
-            );
-
-    protected $tileDefaultSrc = 'mapnik';
-    protected $markerBaseDir = 'images';
-    protected $fontBaseDir = 'fonts/';
-    //protected $osmLogo = 'images/osm_logo.png';
-
-    protected $useTileCache = false;
-    protected $tileCacheBaseDir = 'cache/tiles';
-
-    protected $useMapCache = true;
-    protected $doNotWriteMapCache = false;
-    protected $doNotReadMapCache = false;
-    protected $mapCacheBaseDir = 'cache/maps';
-    protected $mapCacheID = '';
-    protected $mapCacheFile = '';
-    protected $mapCacheExtension = 'png';
+Class staticMapLite extends myStaticMap {
 
     protected $zoom, $lat, $lon, $width, $height, $markers, $image, $maptype;
     protected $centerX, $centerY, $offsetX, $offsetY;
-
-    /** Should an attribution text being added at the lower right corner of the image? */
-    protected $attribution = false;
 
     public function __construct(){
         $this->zoom = 0;
@@ -105,6 +55,13 @@ Class staticMapLite {
         $this->height = 350;
         $this->markers = array();
         $this->maptype = $this->tileDefaultSrc;
+    }
+
+    public static function parseHexColor($hexString){
+        $red = 255;
+        $green = 0;
+        $blue = 0;
+
     }
 
     public function parseParams(){
@@ -126,13 +83,26 @@ Class staticMapLite {
             $this->height = intval($this->height);
         }
         if($_GET['markers']){
+            // split up into markers
             $markers = preg_split('/%7C|\|/',$_GET['markers']);
             foreach($markers as $marker){
-                list($markerLat, $markerLon, $markerImage) = explode(',',$marker);
-                $markerLat = floatval($markerLat);
-                $markerLon = floatval($markerLon);
-                $markerImage = basename($markerImage);
-                $this->markers[] = array('lat'=>$markerLat, 'lon'=>$markerLon, 'image'=>$markerImage);
+                // split up by , into key:value pairs
+                $kvPairs = explode(',', $marker);
+                // build array of keys and values
+                $params = array();
+                foreach($kvPairs as $pair) {
+                    list($key, $value) = explode(':', $pair, 2);
+                    $params[trim($key)] = trim($value);
+                }
+                if (isset($params['lat']) && isset($params['lon']) && isset($params['image'])) {
+                    error_log('add marker');
+                    $markerLat = floatval($params['lat']);
+                    $markerLon = floatval($params['lon']);
+                    $markerImage = basename($params['image']);
+                    $this->markers[] = array('lat'=>$markerLat, 'lon'=>$markerLon, 'image'=>$markerImage);
+                } else {
+                    output_error('One of the mandatory marker arguments is missing: lat, lon, image');
+                }
             }
 
         }
@@ -294,7 +264,6 @@ Class staticMapLite {
         $height = abs($bbox[5] - $bbox[1]);
         $black = imagecolorallocate($this->image, 0, 0, 0);
         $transparentWhite = imagecolorallocatealpha($this->image, 255, 255, 255, 60);
-        error_log('font: ' . $this->fontBaseDir.'/'.$font);
         imagefilledrectangle($this->image, imagesx($this->image) - $length - 2, imagesy($this->image) - $height - 4, imagesx($this->image), imagesy($this->image), $transparentWhite);
         imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1, imagesy($this->image) - 4, $black, $this->fontBaseDir.'/'.$font, $attributionText);
     }

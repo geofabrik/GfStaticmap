@@ -13,7 +13,13 @@ All other parameters are optional and control overlays and attribution
 
 ### Markers (Optional)
 
-* `markers`: `{latitude},{longitude},{marker icon}|{latitude},{longitude},{marker icon}`, a list of markers separated by `|` (in URLs encoded as `%7C`. Latitude and longitude are float numbers. Marker icon is a string. See below for the list of available marker icons.
+* `markers`: comma-separated list of key-value pairs. Keys and values are separated by colons (`:`). Multiple markers are separated by bars (`|`, in URLs encoded as `%7C`).
+
+Following keys are available:
+
+* `lat`: latitude (float), mandatory
+* `lon`: longitude (float), mandatory
+* `image`: image to be used (string), mandatory
 
 Markers are drawn and numbered in the order they occur in this list. Each marker gets its number inside the pin.
 
