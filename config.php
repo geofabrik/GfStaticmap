@@ -60,6 +60,30 @@ Class myStaticMap extends staticMapLiteDefaults {
      * * `font`: font file to be used. This must be TTF font located in the fonts/ directory.
      */
     protected $markerLookup = array (
+            'default/marker' => array(
+                'filename' => 'default/marker.png',
+                'maskname' => 'default/marker_colorize.png',
+                'width' => 24,
+                'height' => 39,
+                'hotx' => 12,
+                'hoty' => 39,
+                'textx' => 12,
+                'texty' => 18,
+                'textsize' => 12,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'default/pin' => array (
+                'filename' => 'default/pin.png',
+                'maskname' => 'default/pin_colorize.png',
+                'width' => 20,
+                'height' => 39,
+                'hotx' => 10,
+                'hoty' => 39,
+                'textx' => 10,
+                'texty' => 16,
+                'textsize' => 12,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
             'default/redpin' => array (
                 'filename' => 'default/redpin.png',
                 'width' => 39,

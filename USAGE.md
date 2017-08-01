@@ -20,9 +20,12 @@ Following keys are available:
 * `lat`: latitude (float), mandatory
 * `lon`: longitude (float), mandatory
 * `image`: image to be used (string), mandatory
+* `color`: color of the icon as RGB HEX string with 6 digits and no leading # character (default: FF0000)
+* `fontcolor`: color of the font as RGB HEX string with 6 digits and no leading # character (default: 000000)
 
 Markers are drawn and numbered in the order they occur in this list. Each marker gets its number inside the pin.
 
 Following marker icons are available:
 
-* `redpin`: a red pin
+* `pin`: a pin
+* `marker`: marker icon as used by the Leaflet JavaScript library

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 22.500001 36.562499"
+   version="1.1"
+   id="svg2"
+   height="39"
+   width="24"
+   sodipodi:docname="marker_colorize.svg"
+   inkscape:version="0.91 r13725"
+   inkscape:export-filename="/var/www/staticmap/images/default/marker_colorize.png"
+   inkscape:export-xdpi="81"
+   inkscape:export-ydpi="81">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1151"
+     id="namedview16"
+     showgrid="false"
+     inkscape:zoom="10.792683"
+     inkscape:cx="30.910409"
+     inkscape:cy="20.820767"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <metadata
+     id="metadata74">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4" />
+  <path
+     d="m 11.181231,0.4932979 c -5.8325108,0 -10.68716931,5.1723881 -10.68716931,10.7846711 0,2.524845 1.38780581,5.733162 2.39050441,7.94899 l 8.2576219,16.243354 8.218579,-16.243354 c 1.002699,-2.215828 2.429548,-5.263274 2.429548,-7.94899 0,-5.612283 -4.776572,-10.7846711 -10.609084,-10.7846711 z"
+     id="path4308"
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.10824263;stroke-linecap:round;stroke-opacity:1"
+     inkscape:connector-curvature="0"
+     sodipodi:nodetypes="sscccss" />
+</svg>

@@ -18,11 +18,6 @@
  * limitations under the License.
  *
  * @author Gerhard Koch <gerhard.koch AT ymail.com>
- *
- * USAGE: 
- *
- *  staticmap.php?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=lat:40.702147,lon:-74.015794,image:redpin|lat:40.711614,lon:-74.012318,image:redpin|lat:40.718217,lon:-73.998284,image:redpin
- *
  */ 
 
 /*error_reporting(0);
@@ -30,6 +25,8 @@ ini_set('display_errors','off');
 */
 
 require 'config.php';
+require 'color.php';
+require 'marker.php';
 
 function output_error($message) {
     http_response_code(400);
@@ -55,13 +52,6 @@ Class staticMapLite extends myStaticMap {
         $this->height = 350;
         $this->markers = array();
         $this->maptype = $this->tileDefaultSrc;
-    }
-
-    public static function parseHexColor($hexString){
-        $red = 255;
-        $green = 0;
-        $blue = 0;
-
     }
 
     public function parseParams(){
@@ -95,11 +85,18 @@ Class staticMapLite extends myStaticMap {
                     $params[trim($key)] = trim($value);
                 }
                 if (isset($params['lat']) && isset($params['lon']) && isset($params['image'])) {
-                    error_log('add marker');
                     $markerLat = floatval($params['lat']);
                     $markerLon = floatval($params['lon']);
                     $markerImage = basename($params['image']);
-                    $this->markers[] = array('lat'=>$markerLat, 'lon'=>$markerLon, 'image'=>$markerImage);
+                    $markerColor = new Color(255, 0, 0);
+                    if (isset($params['color'])) {
+                        $markerColor = Color::colorFromHex($params['color']);
+                    }
+                    $fontColor = new Color(255, 255, 255);
+                    if (isset($params['fontcolor'])) {
+                        $fontColor = Color::colorFromHex($params['fontcolor']);
+                    }
+                    $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor);
                 } else {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, image');
                 }
@@ -158,36 +155,43 @@ Class staticMapLite extends myStaticMap {
         }
     }
 
+    protected function addMarkerOrMask($markerFilename, $markerLookupResult, $colorize, $marker) {
+        if (!file_exists($markerFilename)) return;
+        $markerImg = imagecreatefrompng($markerFilename);
+        $destX = floor(($this->width/2)-$this->tileSize*($this->centerX-$this->lonToTile($marker->lon, $this->zoom)));
+        $destY = floor(($this->height/2)-$this->tileSize*($this->centerY-$this->latToTile($marker->lat, $this->zoom)));
+        $destY = $destY - $markerLookupResult['hoty'];
+        $destX = $destX - $markerLookupResult['hotx'];
+        if ($colorize) {
+            imagefilter($markerImg, IMG_FILTER_COLORIZE, $marker->color->red, $marker->color->green, $marker->color->blue);
+        }
+        imagecopy($this->image, $markerImg, $destX, $destY, 0, 0, imagesx($markerImg), imagesy($markerImg));
+        return array($destX, $destY);
+    }
 
     public function placeMarkers() {
         $white = imagecolorallocate ($this->image, 255, 255, 255);
         $markerIndex=0;
         foreach($this->markers as $marker){
-            $markerLat = $marker['lat'];
-            $markerLon = $marker['lon'];
-            $markerImage = $marker['image'];
+            $markerLat = $marker->lat;
+            $markerLon = $marker->lon;
+            $markerImage = $marker->image;
             $markerIndex++;
-            $mlu = $this->markerLookup[$this->maptype.'/'.$marker['image']];
+            $mlu = $this->markerLookup[$this->maptype.'/'.$marker->image];
             $markerFilename = $this->markerBaseDir.'/'.$mlu['filename'];
-            if (!file_exists($markerFilename)) return;
-            $markerImg = imagecreatefrompng($markerFilename);
-            $destX = floor(($this->width/2)-$this->tileSize*($this->centerX-$this->lonToTile($markerLon, $this->zoom)));
-            $destY = floor(($this->height/2)-$this->tileSize*($this->centerY-$this->latToTile($markerLat, $this->zoom)));
-            $destY = $destY - $mlu['hoty'];
-            $destX = $destX - $mlu['hotx'];
-
-            imagecopy($this->image, $markerImg, $destX, $destY, 0, 0, imagesx($markerImg), imagesy($markerImg));
+            $markerMaskname = $this->markerBaseDir.'/'.$mlu['maskname'];
+            list($destX, $destY) = $this->addMarkerOrMask($markerMaskname, $mlu, true, $marker);
+            $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
             // determine label width
             $size = imagettfbbox($mlu['textsize'], 0, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
-            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $white, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
+            $fontColor = imagecolorallocate($this->image, $marker->fontColor->red, $marker->fontColor->green, $marker->fontColor->blue);
+            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
         };
     }
-
-
 
     public function tileUrlToFilename($url){
         return $this->tileCacheBaseDir."/".str_replace(array('http://'),'',$url);
