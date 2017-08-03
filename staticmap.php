@@ -25,23 +25,12 @@ ini_set('display_errors','off');
 */
 
 require 'config.php';
-require 'color.php';
 require 'marker.php';
-
-function output_error($message) {
-    http_response_code(400);
-    header('Content-Type: text/plain');
-    $expires = 60*60*24*14;
-    header("Pragma: public");
-    header("Cache-Control: maxage=".$expires);
-    header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
-    print($message . "\n");
-    exit(0);
-}
+require 'linestring.php';
 
 Class staticMapLite extends myStaticMap {
 
-    protected $zoom, $lat, $lon, $width, $height, $markers, $image, $maptype;
+    protected $zoom, $lat, $lon, $width, $height, $markers, $lines, $image, $maptype;
     protected $centerX, $centerY, $offsetX, $offsetY;
 
     public function __construct(){
@@ -51,6 +40,7 @@ Class staticMapLite extends myStaticMap {
         $this->width = 500;
         $this->height = 350;
         $this->markers = array();
+        $this->lines = array();
         $this->maptype = $this->tileDefaultSrc;
     }
 
@@ -72,7 +62,7 @@ Class staticMapLite extends myStaticMap {
             $this->width = intval($this->width);
             $this->height = intval($this->height);
         }
-        if($_GET['markers']){
+        if(isset($_GET['markers'])){
             // split up into markers
             $markers = preg_split('/%7C|\|/',$_GET['markers']);
             foreach($markers as $marker){
@@ -88,11 +78,11 @@ Class staticMapLite extends myStaticMap {
                     $markerLat = floatval($params['lat']);
                     $markerLon = floatval($params['lon']);
                     $markerImage = basename($params['image']);
-                    $markerColor = new Color(255, 0, 0);
+                    $markerColor = new Color(255, 0, 0, 255);
                     if (isset($params['color'])) {
                         $markerColor = Color::colorFromHex($params['color']);
                     }
-                    $fontColor = new Color(255, 255, 255);
+                    $fontColor = new Color(0, 0, 0, 255);
                     if (isset($params['fontcolor'])) {
                         $fontColor = Color::colorFromHex($params['fontcolor']);
                     }
@@ -101,7 +91,35 @@ Class staticMapLite extends myStaticMap {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, image');
                 }
             }
-
+        }
+        if ($_GET['path']) {
+            // split up into single paths
+            $paths = preg_split('/%7C|\|/', $_GET['path']);
+            foreach ($paths as $path) {
+                // split up by , into key:value pairs
+                $kvPairs = explode(',', $path);
+                $params = array();
+                foreach ($kvPairs as $pair) {
+                    list($key, $value) = explode(':', $pair, 2);
+                    $params[trim($key)] = trim($value);
+                }
+                if (!isset($params['points'])) {
+                    output_error('Mandatory argument points for path is missing.');
+                }
+                $lineColor = new Color(255, 0, 0, 255);
+                if (isset($params['color'])) {
+                    $lineColor = Color::colorFromHex($params['color']);
+                }
+                $fillColor = new Color(255, 255, 0, 255);
+                if (isset($params['fillcolor'])) {
+                    $fillColor = Color::colorFromHex($params['fillcolor']);
+                }
+                $lineWidth = 3;
+                if (isset($params['width']) && is_numeric($params['width'])) {
+                    $lineWidth = intVal($params['width']);
+                }
+                $this->lines[] = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
+            }
         }
         if($_GET['maptype']){
             if(array_key_exists($_GET['maptype'],$this->tileSrcUrl)) $this->maptype = $_GET['maptype'];
@@ -170,7 +188,6 @@ Class staticMapLite extends myStaticMap {
     }
 
     public function placeMarkers() {
-        $white = imagecolorallocate ($this->image, 255, 255, 255);
         $markerIndex=0;
         foreach($this->markers as $marker){
             $markerLat = $marker->lat;
@@ -192,6 +209,24 @@ Class staticMapLite extends myStaticMap {
             imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
         };
     }
+
+    public function placeLines() {
+        foreach($this->lines as $line) {
+            for ($i = 1; $i < $line->length(); $i++) {
+                $x1 = floor(($this->width/2) - $this->tileSize * ($this->centerX - $this->lonToTile($line->at($i - 1)->x, $this->zoom)));
+                $y1 = floor(($this->height/2) - $this->tileSize * ($this->centerY - $this->latToTile($line->at($i - 1)->y, $this->zoom)));
+                $x2 = floor(($this->width/2) - $this->tileSize * ($this->centerX - $this->lonToTile($line->at($i)->x, $this->zoom)));
+                $y2 = floor(($this->height/2) - $this->tileSize * ($this->centerY - $this->latToTile($line->at($i)->y, $this->zoom)));
+                if (!($line->fillColor->isTransparent()) && $line->isClosed()) {
+                    list($gdPointsArray, $numPoints) = $line->gdPointsArray();
+                    imagefilledpolygon($this->image, $gdPointsArray, $numPoints, $line->fillColor->allocate($this->image));
+                }
+                imagesetthickness($this->image, $line->width);
+                imageline($this->image, $x1, $y1, $x2, $y2, $line->lineColor->allocate($this->image));
+            }
+        }
+    }
+
 
     public function tileUrlToFilename($url){
         return $this->tileCacheBaseDir."/".str_replace(array('http://'),'',$url);
@@ -283,6 +318,9 @@ Class staticMapLite extends myStaticMap {
     public function makeMap(){
         $this->initCoords();		
         $this->createBaseMap();
+        if (count($this->lines)) {
+            $this->placeLines();
+        }
         if(count($this->markers))$this->placeMarkers();
         if($this->attribution) $this->copyrightNotice('NotoSansUI-Regular.ttf');
     }
