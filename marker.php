@@ -23,13 +23,15 @@ Class Marker {
     public $image;
     public $color;
     public $fontColor;
+    public $label;
 
-    public function __construct($lat, $lon, $image, $color, $fontColor) {
+    public function __construct($lat, $lon, $image, $color, $fontColor, $label) {
         $this->lat = $lat;
         $this->lon = $lon;
         $this->image = $image;
         $this->color = $color;
         $this->fontColor = $fontColor;
+        $this->label = $label;
     }
 }
 ?>

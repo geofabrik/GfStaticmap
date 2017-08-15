@@ -32,6 +32,7 @@ Following keys are available:
 * `image`: image to be used (string), mandatory
 * `color`: color of the icon as RGB HEX string with 6 or 8 digits and no leading # character (default: FF0000FF)
 * `fontcolor`: color of the font as RGB HEX string with 6 or 8 digits and no leading # character (default: 000000FF)
+* `label`: a single character which will be used as label. If this string is empty, the marker will be placed but not labelled. If this parameter is not set, it will be numbered automatically. There must not be more than nine markers which are labelled automatically.
 
 Markers are drawn and numbered in the order they occur in this list. Each marker gets its number inside the pin.
 

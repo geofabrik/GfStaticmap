@@ -63,6 +63,7 @@ Class staticMapLite extends myStaticMap {
             $this->height = intval($this->height);
         }
         if(isset($_GET['markers'])){
+            $markerCount = 1;
             // split up into markers
             $markers = preg_split('/%7C|\|/',$_GET['markers']);
             foreach($markers as $marker){
@@ -86,13 +87,23 @@ Class staticMapLite extends myStaticMap {
                     if (isset($params['fontcolor'])) {
                         $fontColor = Color::colorFromHex($params['fontcolor']);
                     }
-                    $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor);
+                    $markerLabel = (string)$markerCount;
+                    if (isset($params['label'])) {
+                        if (strlen($params['label']) > 1) {
+                            output_error('Labels of markers must be zero or one character long.');
+                        }
+                        $markerLabel = $params['label'];
+                    } else if ($markerCount > 9) {
+                        output_error('More than 9 unlabelled markers.');
+                    }
+                    $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel);
+                    $markerCount++;
                 } else {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, image');
                 }
             }
         }
-        if ($_GET['path']) {
+        if (isset($_GET['path'])) {
             // split up into single paths
             $paths = preg_split('/%7C|\|/', $_GET['path']);
             foreach ($paths as $path) {
@@ -188,12 +199,10 @@ Class staticMapLite extends myStaticMap {
     }
 
     public function placeMarkers() {
-        $markerIndex=0;
         foreach($this->markers as $marker){
             $markerLat = $marker->lat;
             $markerLon = $marker->lon;
             $markerImage = $marker->image;
-            $markerIndex++;
             $mlu = $this->markerLookup[$this->maptype.'/'.$marker->image];
             $markerFilename = $this->markerBaseDir.'/'.$mlu['filename'];
             $markerMaskname = $this->markerBaseDir.'/'.$mlu['maskname'];
@@ -201,12 +210,12 @@ Class staticMapLite extends myStaticMap {
             $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
             // determine label width
-            $size = imagettfbbox($mlu['textsize'], 0, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
+            $size = imagettfbbox($mlu['textsize'], 0, $this->fontBaseDir.'/'.$mlu['font'], $marker->label);
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
             $fontColor = imagecolorallocate($this->image, $marker->fontColor->red, $marker->fontColor->green, $marker->fontColor->blue);
-            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $markerIndex);
+            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $marker->label);
         };
     }
 
