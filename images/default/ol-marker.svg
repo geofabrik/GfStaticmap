@@ -7,16 +7,16 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   viewBox="0 0 19.473346 23.467035"
+   viewBox="0 0 19.693908 23.425498"
    version="1.1"
    id="svg2"
-   height="25.031504"
-   width="20.771568"
+   height="24.987198"
+   width="21.006834"
    sodipodi:docname="ol-marker.svg"
    inkscape:version="0.91 r13725"
    inkscape:export-filename="/var/www/staticmap/images/default/ol-marker.png"
-   inkscape:export-xdpi="81"
-   inkscape:export-ydpi="81">
+   inkscape:export-xdpi="90.046112"
+   inkscape:export-ydpi="90.046112">
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -31,8 +31,8 @@
      id="namedview16"
      showgrid="false"
      inkscape:zoom="10.792683"
-     inkscape:cx="18.014814"
-     inkscape:cy="12.207378"
+     inkscape:cx="15.933869"
+     inkscape:cy="12.938838"
      inkscape:window-x="0"
      inkscape:window-y="25"
      inkscape:window-maximized="1"
@@ -56,16 +56,16 @@
   <defs
      id="defs4" />
   <path
-     style="fill:none;fill-opacity:0.0619946;stroke:#000000;stroke-width:0.98783636;stroke-linecap:round;stroke-opacity:1"
-     d="M 0.65342562,7.3608357 9.7263028,22.506676 18.819322,7.3608357 9.7263028,0.61522971 Z"
+     style="fill:none;fill-opacity:0.0619946;stroke:#000000;stroke-width:0.99260831;stroke-linecap:round;stroke-opacity:1"
+     d="M 0.66014708,7.3495306 9.8364613,22.469676 19.033148,7.3495306 9.8364613,0.6153687 Z"
      id="path4308"
      inkscape:connector-curvature="0"
      sodipodi:nodetypes="ccccc" />
   <ellipse
      style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.87500024;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.5444744"
      id="path4183"
-     cx="9.7366734"
-     cy="8.6935196"
-     rx="1.7379664"
-     ry="1.7379663" />
+     cx="9.8469496"
+     cy="8.6799536"
+     rx="1.7577806"
+     ry="1.7350178" />
 </svg>
