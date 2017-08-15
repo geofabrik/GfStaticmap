@@ -40,6 +40,7 @@ Following marker icons are available:
 
 * `pin`: a pin
 * `marker`: marker icon as used by the Leaflet JavaScript library
+* `ol-marker`: marker icon as used by the OpenLayers 2 JavaScript library, text will be placed outside the icon (and maybe outside the image)
 
 ### Lines (optional)
 
