@@ -47,15 +47,19 @@ Class Color {
         return new Color(hexdec($red), hexdec($green), hexdec($blue), hexdec($alpha));
     }
 
-    public function allocate($image) {
-        // adjust alpha to the range allowed by GD library
-        // first invert the scale (0:transparent..255:opaque) to (0:opaque..255:transparent)
+    public function gdAlpha() {
         $alphaGD = 255 - $this->alpha;
         $alphaGD = $alphaGD * 0.49;
         if ($this->alpha == 0) {
             $alphaGD = 127;
         }
-        error_log('transp: ' . $this->alpha . ' ' . $alphaGD);
+        return $alphaGD;
+    }
+
+    public function allocate($image) {
+        // adjust alpha to the range allowed by GD library
+        // first invert the scale (0:transparent..255:opaque) to (0:opaque..255:transparent)
+        $alphaGD = $this->gdAlpha();
         return imagecolorallocatealpha($image, $this->red, $this->green, $this->blue, $alphaGD);
     }
 

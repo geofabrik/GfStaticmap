@@ -7,9 +7,13 @@
 * `center`: `<latitude>,<longitude>`, center of the map image in geographical coordinates, e.g. `40.714728,-73.998672`
 * `zoom`: `<zoom level>`, zoom level (`0` to `18`), integer
 * `size`: `<width>x<height>`, width and height in pixel, both integer
-* `maptype`: `default`
 
-All other parameters are optional and control overlays and attribution
+### Optional Parameters Controlling the Overall Appearance of the Map
+
+* `maptype`: `default`, string. If the server supports offers high-resolution tiles, `print` and `print150` might be added.
+* `
+
+All other parameters control overlays and attribution
 
 ### Markers (Optional)
 
@@ -30,7 +34,7 @@ Following keys are available:
 * `lat`: latitude (float), mandatory
 * `lon`: longitude (float), mandatory
 * `image`: image to be used (string), mandatory
-* `color`: color of the icon as RGB HEX string with 6 or 8 digits and no leading # character (default: FF0000FF)
+* `color`: color of the icon as RGB HEX string with 6 or 8 digits and no leading # character (default: FF0000FF). Transparency is not supported, marker fill color is always opaque.
 * `fontcolor`: color of the font as RGB HEX string with 6 or 8 digits and no leading # character (default: 000000FF)
 * `label`: a single character which will be used as label. If this string is empty, the marker will be placed but not labelled. If this parameter is not set, it will be numbered automatically. There must not be more than nine markers which are labelled automatically.
 
@@ -62,3 +66,17 @@ Following keys are available:
 * `width`: width of the line. Widths larger than 3 might look bad due to a bug in the underlying graphics software library.
 * `color`: color of the outline as RGB HEX string with 6 or 8 digits and no leading # character
 * `fillcolor`: fill color as RGB HEX string with 6 or 8 digits and no leading # character
+
+## Examples
+
+Map of Manhattan Downtown, two markers automatically labeled, filled polygon:
+
+```
+http://staticmap.hatano.geofabrik.de/test_osm?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=lon:-74.015794,lat:40.702147,image:marker,fontcolor:00000033,color:FFFF0033|lon:-74.015794,lat:40.709147,image:pin,fontcolor:0000FF,color:FF00FF&path=points:(-73.998672%2040.702147)(-74.015794%2040.702147)(-74.0117%2040.712147)(-73.998672%2040.702147),color:FF000033,fillcolor:00FF0033
+```
+
+The same but with manually labeled markers:
+
+```
+http://staticmap.hatano.geofabrik.de/test_osm?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=label:A,lon:-74.015794,lat:40.702147,image:marker,fontcolor:00000033,color:FFFF0033|lon:-74.015794,lat:40.709147,label:Z,image:pin,fontcolor:0000FF,color:FF00FF&path=points:(-73.998672%2040.702147)(-74.015794%2040.702147)(-74.0117%2040.712147)(-73.998672%2040.702147),color:FF000033,fillcolor:00FF0033
+```

@@ -44,8 +44,7 @@ Class staticMapLiteDefaults {
             'print150' => 'http://print.tile.geofabrik.de{P}/{Z}/{X}/{Y}.png',
             'default' => 'http://tile.geofabrik.de{P}/{Z}/{X}/{Y}.png'
             );
-
-    /**
+/**
      * Available markers.
      *
      * Properties:

@@ -145,17 +145,10 @@ Class staticMapLite extends myStaticMap {
         }
     }
 
-    public function lonToTile($long, $zoom){
-        return (($long + 180) / 360) * pow(2, $zoom);
-    }
-
-    public function latToTile($lat, $zoom){
-        return (1 - log(tan($lat * pi()/180) + 1 / cos($lat* pi()/180)) / pi()) /2 * pow(2, $zoom);
-    }
 
     public function initCoords(){
-        $this->centerX = $this->lonToTile($this->lon, ($this->zoom));
-        $this->centerY = $this->latToTile($this->lat, ($this->zoom));
+        $this->centerX = lonToTile($this->lon, ($this->zoom));
+        $this->centerY = latToTile($this->lat, ($this->zoom));
         $this->offsetX = floor((floor($this->centerX)-$this->centerX)*$this->tileSize);
         $this->offsetY = floor((floor($this->centerY)-$this->centerY)*$this->tileSize);
     }
@@ -187,8 +180,8 @@ Class staticMapLite extends myStaticMap {
     protected function addMarkerOrMask($markerFilename, $markerLookupResult, $colorize, $marker) {
         if (!file_exists($markerFilename)) return;
         $markerImg = imagecreatefrompng($markerFilename);
-        $destX = floor(($this->width/2)-$this->tileSize*($this->centerX-$this->lonToTile($marker->lon, $this->zoom)));
-        $destY = floor(($this->height/2)-$this->tileSize*($this->centerY-$this->latToTile($marker->lat, $this->zoom)));
+        $destX = floor(($this->width/2)-$this->tileSize*($this->centerX - lonToTile($marker->lon, $this->zoom)));
+        $destY = floor(($this->height/2)-$this->tileSize*($this->centerY - latToTile($marker->lat, $this->zoom)));
         $destY = $destY - $markerLookupResult['hoty'];
         $destX = $destX - $markerLookupResult['hotx'];
         if ($colorize) {
@@ -214,24 +207,22 @@ Class staticMapLite extends myStaticMap {
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
-            $fontColor = imagecolorallocate($this->image, $marker->fontColor->red, $marker->fontColor->green, $marker->fontColor->blue);
+            $fontColor = $marker->fontColor->allocate($this->image);
             imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $marker->label);
         };
     }
 
     public function placeLines() {
         foreach($this->lines as $line) {
-            for ($i = 1; $i < $line->length(); $i++) {
-                $x1 = floor(($this->width/2) - $this->tileSize * ($this->centerX - $this->lonToTile($line->at($i - 1)->x, $this->zoom)));
-                $y1 = floor(($this->height/2) - $this->tileSize * ($this->centerY - $this->latToTile($line->at($i - 1)->y, $this->zoom)));
-                $x2 = floor(($this->width/2) - $this->tileSize * ($this->centerX - $this->lonToTile($line->at($i)->x, $this->zoom)));
-                $y2 = floor(($this->height/2) - $this->tileSize * ($this->centerY - $this->latToTile($line->at($i)->y, $this->zoom)));
-                if (!($line->fillColor->isTransparent()) && $line->isClosed()) {
-                    list($gdPointsArray, $numPoints) = $line->gdPointsArray();
-                    imagefilledpolygon($this->image, $gdPointsArray, $numPoints, $line->fillColor->allocate($this->image));
-                }
+            // build array of points transformed to pixel coordinates
+            list($gdPArray, $numPoints) = $line->gdPointsArray($this->width, $this->height, $this->centerX, $this->centerY, $this->zoom, $this->tileSize);
+
+            if (!($line->fillColor->isTransparent()) && $line->isClosed()) {
+                imagefilledpolygon($this->image, $gdPArray, $numPoints, $line->fillColor->allocate($this->image));
+            }
+            for ($i = 0; $i < $line->length() - 1; $i++) {
                 imagesetthickness($this->image, $line->width);
-                imageline($this->image, $x1, $y1, $x2, $y2, $line->lineColor->allocate($this->image));
+                imageline($this->image, $gdPArray[$i * 2], $gdPArray[$i * 2 + 1], $gdPArray[$i * 2 + 2], $gdPArray[$i * 2 + 3], $line->lineColor->allocate($this->image));
             }
         }
     }
@@ -307,6 +298,7 @@ Class staticMapLite extends myStaticMap {
      */
     public function copyrightNotice($font){
         $attributionText = '© OpenStreetMap contributors';
+        error_log('trying open font ' . $this->fontBaseDir . '/' . $font);
         $bbox = imagettfbbox(8, 0, $this->fontBaseDir . '/' . $font, $attributionText);
         $length = abs($bbox[4] - $bbox[0]);
         $height = abs($bbox[5] - $bbox[1]);

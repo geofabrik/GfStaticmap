@@ -1,6 +1,7 @@
 <?php
 
 require 'color.php';
+require 'toTile.php';
 
 function output_error($message) {
     http_response_code(400);
@@ -51,11 +52,13 @@ class LineString {
         return ($this->length() >= 4) && ($this->points[0]->x == end($this->points)->x) && ($this->points[0]->y == end($this->points)->y);
     }
 
-    public function gdPointsArray() {
+    public function gdPointsArray($width, $height, $centerX, $centerY, $zoom, $tileSize) {
         $gdPArray = array();
-        for ($i = 0; $i < count($points); $i++) {
-            $gdParray[] = $points[$i]->x;
-            $gdParray[] = $points[$i]->y;
+        for ($i = 0; $i < count($this->points); $i++) {
+            $x1 = floor(($width/2) - $tileSize * ($centerX - lonToTile($this->at($i)->x, $zoom)));
+            $y1 = floor(($height/2) - $tileSize * ($centerY - latToTile($this->at($i)->y, $zoom)));
+            $gdPArray[] = $x1;
+            $gdPArray[] = $y1;
         }
         return array($gdPArray, $this->length());
     }
