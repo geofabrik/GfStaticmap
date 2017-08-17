@@ -10,8 +10,9 @@
 
 ### Optional Parameters Controlling the Overall Appearance of the Map
 
-* `maptype`: `default`, string. If the server supports offers high-resolution tiles, `print` and `print150` might be added.
-* `
+* `maptype`: string. If the server supports offers high-resolution tiles, `print` and `print150` might be added. Default value: `default`
+* `attribution`: boolean. Use `false` if you do not want a attribution text being included in the lower right corner. Default value: `true`
+* `attribution-font`: string. Font to be used for attribution. Default value: `NotoSansUI-Regular`
 
 All other parameters control overlays and attribution
 
@@ -37,6 +38,7 @@ Following keys are available:
 * `color`: color of the icon as RGB HEX string with 6 or 8 digits and no leading # character (default: FF0000FF). Transparency is not supported, marker fill color is always opaque.
 * `fontcolor`: color of the font as RGB HEX string with 6 or 8 digits and no leading # character (default: 000000FF)
 * `label`: a single character which will be used as label. If this string is empty, the marker will be placed but not labelled. If this parameter is not set, it will be numbered automatically. There must not be more than nine markers which are labelled automatically.
+* `font`: font to be used. See list of available fonts below.
 
 Markers are drawn and numbered in the order they occur in this list. Each marker gets its number inside the pin.
 
@@ -80,3 +82,14 @@ The same but with manually labeled markers:
 ```
 http://staticmap.hatano.geofabrik.de/test_osm?center=40.714728,-73.998672&zoom=14&size=512x512&maptype=default&markers=label:A,lon:-74.015794,lat:40.702147,image:marker,fontcolor:00000033,color:FFFF0033|lon:-74.015794,lat:40.709147,label:Z,image:pin,fontcolor:0000FF,color:FF00FF&path=points:(-73.998672%2040.702147)(-74.015794%2040.702147)(-74.0117%2040.712147)(-73.998672%2040.702147),color:FF000033,fillcolor:00FF0033
 ```
+
+## List of Fonts
+
+Following fonts are installed with Staticmap by default:
+
+* NotoSansUI-Regular
+* NotoSansUI-Bold
+* LiberationSans-Regular
+* LiberationSans-Bold
+
+Additional TrueType fonts can be installed on request.

@@ -24,14 +24,16 @@ Class Marker {
     public $color;
     public $fontColor;
     public $label;
+    public $font;
 
-    public function __construct($lat, $lon, $image, $color, $fontColor, $label) {
+    public function __construct($lat, $lon, $image, $color, $fontColor, $label, $font = 'LiberationSans-Bold') {
         $this->lat = $lat;
         $this->lon = $lon;
         $this->image = $image;
         $this->color = $color;
         $this->fontColor = $fontColor;
         $this->label = $label;
+        $this->font = $font . '.ttf';
     }
 }
 ?>

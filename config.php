@@ -194,6 +194,9 @@ Class myStaticMap extends staticMapLiteDefaults {
     protected $mapCacheExtension = 'png';
 
     /** Should an attribution text being added at the lower right corner of the image by default? */
-    protected $attribution = false;
+    protected $attribution = true;
+
+    /** Font of the attribution text */
+    protected $attributionFont = 'NotoSansUI-Regular';
 }
 ?>

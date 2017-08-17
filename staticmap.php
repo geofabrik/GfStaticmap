@@ -96,7 +96,15 @@ Class staticMapLite extends myStaticMap {
                     } else if ($markerCount > 9) {
                         output_error('More than 9 unlabelled markers.');
                     }
-                    $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel);
+                    if (isset($params['font'])) {
+                        $font = $params['font'];
+                        if (!is_readable($this->fontBaseDir . $font . '.ttf')) {
+                            output_error('Font ' . $font . ' is not available. Please provide a font which accessiable for the staticmap API.');
+                        }
+                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel, $font);
+                    } else {
+                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel);
+                    }
                     $markerCount++;
                 } else {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, image');
@@ -140,8 +148,21 @@ Class staticMapLite extends myStaticMap {
         if(isset($_GET['nocache'])){
             $this->doNotReadMapCache = true;
         }
-        if(isset($_GET['attribution']) and $_GET['attribution'] == 'true'){
-            $this->attribution = true;
+        if(isset($_GET['attribution'])) {
+           if ($_GET['attribution'] == 'false'){
+               $this->attribution = false;
+           } else if ($_GET['attribution'] != 'true') {
+               output_error('Illegal option for parameter \'attribution\'');
+           }
+        }
+        if (isset($_GET['attribution-font'])) {
+            $this->attributionFont = $_GET['attribution-font'];
+            if (strlen($this->attributionFont) == 0) {
+                output_error('Missing font name for attribution text.');
+            }
+            if (!is_readable($this->fontBaseDir . $this->attributionFont . '.ttf')) {
+                output_error('Font ' . $font . ' is not available. Please provide a font which accessiable for the staticmap API.');
+            }
         }
     }
 
@@ -203,12 +224,13 @@ Class staticMapLite extends myStaticMap {
             $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
             // determine label width
-            $size = imagettfbbox($mlu['textsize'], 0, $this->fontBaseDir.'/'.$mlu['font'], $marker->label);
+            $font = $this->fontBaseDir.'/'.$marker->font;
+            $size = imagettfbbox($mlu['textsize'], 0, $font, $marker->label);
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
             $fontColor = $marker->fontColor->allocate($this->image);
-            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $this->fontBaseDir.'/'.$mlu['font'], $marker->label);
+            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $font, $marker->label);
         };
     }
 
@@ -296,16 +318,16 @@ Class staticMapLite extends myStaticMap {
      *
      * @param font truetype font file to be used, has to be located in the `fonts/` subdirectory
      */
-    public function copyrightNotice($font){
+    public function copyrightNotice(){
         $attributionText = '© OpenStreetMap contributors';
-        error_log('trying open font ' . $this->fontBaseDir . '/' . $font);
-        $bbox = imagettfbbox(8, 0, $this->fontBaseDir . '/' . $font, $attributionText);
+        $font = $this->fontBaseDir.'/' . $this->attributionFont . '.ttf';
+        $bbox = imagettfbbox(8, 0, $font, $attributionText);
         $length = abs($bbox[4] - $bbox[0]);
         $height = abs($bbox[5] - $bbox[1]);
         $black = imagecolorallocate($this->image, 0, 0, 0);
         $transparentWhite = imagecolorallocatealpha($this->image, 255, 255, 255, 60);
         imagefilledrectangle($this->image, imagesx($this->image) - $length - 2, imagesy($this->image) - $height - 4, imagesx($this->image), imagesy($this->image), $transparentWhite);
-        imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1, imagesy($this->image) - 4, $black, $this->fontBaseDir.'/'.$font, $attributionText);
+        imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1, imagesy($this->image) - 4, $black, $font, $attributionText);
     }
 
     public function sendHeader(){
@@ -323,7 +345,7 @@ Class staticMapLite extends myStaticMap {
             $this->placeLines();
         }
         if(count($this->markers))$this->placeMarkers();
-        if($this->attribution) $this->copyrightNotice('NotoSansUI-Regular.ttf');
+        if($this->attribution) $this->copyrightNotice();
     }
 
     public function showMap(){
