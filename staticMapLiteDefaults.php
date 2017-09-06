@@ -28,23 +28,6 @@ Class staticMapLiteDefaults {
     protected $tileSize = 256;
 
     /**
-     * Available map tile sources.
-     *
-     * The parameters `{X}`, `{Y}` and `{Z}` must be used in the URL
-     * and represent the X, Y and Z index of the map tiles.
-     *
-     * Following parameters are optional and only have to be set if the tile server
-     * needs them:
-     *
-     * * `{P}` API key. If the URL contains a variable string like an API key, insert `{P}` at
-     *   the location where the API key would be inserted.
-     */
-    protected $tileSrcUrl = array(
-            'print' => 'http://print.tile.geofabrik.de{P}/{Z}/{X}/{Y}.png',
-            'print150' => 'http://print.tile.geofabrik.de{P}/{Z}/{X}/{Y}.png',
-            'default' => 'http://tile.geofabrik.de{P}/{Z}/{X}/{Y}.png'
-            );
-/**
      * Available markers.
      *
      * Properties:
@@ -60,42 +43,115 @@ Class staticMapLiteDefaults {
      * * `font`: font file to be used. This must be TTF font located in the fonts/ directory.
      */
     protected $markerLookup = array (
-            'default/redpin' => array (
-                'filename' => 'default/redpin.png',
-                'width' => 39,
-                'height' => 39,
-                'hotx' => 19,
-                'hoty' => 39,
-                'textx' => 19,
+            'default/marker' => array(
+                'filename' => 'default/marker.png',
+                'maskname' => 'default/marker_colorize.png',
+                'width' => 24,
+                'height' => 40,
+                'hotx' => 12,
+                'hoty' => 40,
+                'textx' => 12,
+                'texty' => 18,
+                'textsize' => 12,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'print150/marker' => array(
+                'filename' => 'print150/marker.png',
+                'maskname' => 'print150/marker_colorize.png',
+                'width' => 48,
+                'height' => 40,
+                'hotx' => 24,
+                'hoty' => 80,
+                'textx' => 24,
+                'texty' => 36,
+                'textsize' => 24,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'print/marker' => array(
+                'filename' => 'print/marker.png',
+                'maskname' => 'print/marker_colorize.png',
+                'width' => 96,
+                'height' => 80,
+                'hotx' => 48,
+                'hoty' => 160,
+                'textx' => 48,
+                'texty' => 72,
+                'textsize' => 48,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'default/ol-marker' => array (
+                'filename' => 'default/ol-marker.png',
+                'maskname' => 'default/ol-marker_colorize.png',
+                'width' => 21,
+                'height' => 25,
+                'hotx' => 10.5,
+                'hoty' => 25,
+                'textx' => 21,
+                'texty' => 0,
+                'textsize' => 12,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'print150/ol-marker' => array (
+                'filename' => 'print150/ol-marker.png',
+                'maskname' => 'print150/ol-marker_colorize.png',
+                'width' => 84,
+                'height' => 100,
+                'hotx' => 42,
+                'hoty' => 100,
+                'textx' => 100,
+                'texty' => 0,
+                'textsize' => 48,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'print/ol-marker' => array (
+                'filename' => 'print/ol-marker.png',
+                'maskname' => 'print/ol-marker_colorize.png',
+                'width' => 84,
+                'height' => 100,
+                'hotx' => 42,
+                'hoty' => 100,
+                'textx' => 100,
+                'texty' => 0,
+                'textsize' => 48,
+                'font' => 'LiberationSans-Bold.ttf',
+                ),
+            'default/pin' => array (
+                'filename' => 'default/pin.png',
+                'maskname' => 'default/pin_colorize.png',
+                'width' => 20,
+                'height' => 40,
+                'hotx' => 10,
+                'hoty' => 40,
+                'textx' => 11,
                 'texty' => 16,
                 'textsize' => 12,
                 'font' => 'LiberationSans-Bold.ttf',
                 ),
-            'print/redpin' => array (
-                'filename' => 'print/redpin.png',
-                'width' => 154,
-                'height' => 154,
-                'hotx' => 77,
-                'hoty' => 154,
-                'textx' => 75,
-                'texty' => 65,
-                'textsize' => 45,
+            'print150/pin' => array (
+                'filename' => 'print150/pin.png',
+                'maskname' => 'print150/pin_colorize.png',
+                'width' => 40,
+                'height' => 80,
+                'hotx' => 20,
+                'hoty' => 80,
+                'textx' => 21,
+                'texty' => 32,
+                'textsize' => 24,
                 'font' => 'LiberationSans-Bold.ttf',
                 ),
-            'print150/redpin' => array (
-                'filename' => 'print150/redpin.png',
-                'width' => 77 ,
-                'height' => 77,
-                'hotx' => 38,
-                'hoty' => 77,
-                'textx' => 38,
-                'texty' => 33,
-                'textsize' => 23,
+            'print/pin' => array (
+                'filename' => 'print/pin.png',
+                'maskname' => 'print/pin_colorize.png',
+                'width' => 80,
+                'height' => 160,
+                'hotx' => 40,
+                'hoty' => 160,
+                'textx' => 42,
+                'texty' => 64,
+                'textsize' => 48,
                 'font' => 'LiberationSans-Bold.ttf',
                 ),
             );
-
-    protected $tileDefaultSrc = 'mapnik';
 
     /** Marker directory */
     protected $markerBaseDir = 'images';
@@ -123,5 +179,20 @@ Class staticMapLiteDefaults {
 
     /** Font of the attribution text */
     protected $attributionFont = 'NotoSansUI-Regular';
+
+    /** Return tileSrcUrl array */
+    public function getTileSrcUrls() {
+        return $tileSrcUrl;
+    }
+
+    /**
+     * Method which returns the API key supplied by the user which should be passed to the tile server.
+     */
+    protected function getApiKey() {
+        if (isset($_GET['apikey'])) {
+            return $_GET['apikey'];
+        }
+        return '';
+    }
 }
 ?>

@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * staticMapLite 0.02
+ *
+ * Copyright 2009 Gerhard Koch
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @author Michael Reichert <michael.reichert@geofabrik.de>
+ */ 
+
+require 'staticMapLiteDefaults.php';
+
+Class myStaticMap extends staticMapLiteDefaults {
+
+    protected $tileSize = 256;
+
+    /**
+     * Available map tile sources.
+     *
+     * The parameters `{X}`, `{Y}` and `{Z}` must be used in the URL
+     * and represent the X, Y and Z index of the map tiles.
+     *
+     * Following parameters are optional and only have to be set if the tile server
+     * needs them:
+     *
+     * * `{P}` API key. If the URL contains a variable string like an API key, insert `{P}` at
+     *   the location where the API key would be inserted.
+     */
+//    protected $tileSrcUrl = array(
+//            'nicemap' => 'https://tile.nicemapprovider.local/{P}/{Z}/{X}/{Y}.png',
+//            'defaultTileProvider' => 'http://tile.freeosmmaps.local/{P}/{Z}/{X}/{Y}.png'
+//            );
+
+    /**
+     * Available markers.
+     *
+     * Changing $markerLookup will overwrite the default entries.
+     *
+     * Properties:
+     *
+     * * `filename`: filename relative to the `$markerBaseDir`
+     * * `width`: width of the marker
+     * * `height`: height of the marker
+     * * `hotx`: x coordinate of the "tip" of the marker
+     * * `hoty`: y coordinate of the tip of the marker
+     * * `textx`: x coordinate of the text label
+     * * `texty`: y coordinate of the text label
+     * * `textsize`: size of the text
+     * * `font`: font file to be used. This must be TTF font located in the fonts/ directory.
+     */
+//    protected $markerLookup = array (
+//            'default/marker' => array(
+//                'filename' => 'default/marker.png',
+//                'maskname' => 'default/marker_colorize.png',
+//                'width' => 24,
+//                'height' => 40,
+//                'hotx' => 12,
+//                'hoty' => 40,
+//                'textx' => 12,
+//                'texty' => 18,
+//                'textsize' => 12,
+//                'font' => 'LiberationSans-Bold.ttf',
+//                ),
+//            'print150/marker' => array(
+//                'filename' => 'print150/marker.png',
+//                'maskname' => 'print150/marker_colorize.png',
+//                'width' => 48,
+//                'height' => 40,
+//                'hotx' => 24,
+//                'hoty' => 80,
+//                'textx' => 24,
+//                'texty' => 36,
+//                'textsize' => 24,
+//                'font' => 'LiberationSans-Bold.ttf',
+//                ),
+//            'print/marker' => array(
+//                'filename' => 'print/marker.png',
+//                'maskname' => 'print/marker_colorize.png',
+//                'width' => 96,
+//                'height' => 80,
+//                'hotx' => 48,
+//                'hoty' => 160,
+//                'textx' => 48,
+//                'texty' => 72,
+//                'textsize' => 48,
+//                'font' => 'LiberationSans-Bold.ttf',
+//                )
+//            );
+
+    protected $tileDefaultSrc = 'defaultTileProvider';
+
+    /** Marker directory */
+//    protected $markerBaseDir = 'images';
+
+    /** Font directory */
+//    protected $fontBaseDir = 'fonts/';
+
+//    protected $useTileCache = false;
+
+    /** Directory of the tile cache */
+//    protected $tileCacheBaseDir = 'cache/tiles';
+
+//    protected $useMapCache = true;
+//    protected $doNotWriteMapCache = false;
+//    protected $doNotReadMapCache = false;
+
+    /** Directory of the cache of composed maps */
+//    protected $mapCacheBaseDir = 'cache/maps';
+//    protected $mapCacheID = '';
+//    protected $mapCacheFile = '';
+//    protected $mapCacheExtension = 'png';
+
+    /** Should an attribution text being added at the lower right corner of the image by default? */
+//    protected $attribution = true;
+
+    /** Font of the attribution text */
+//    protected $attributionFont = 'NotoSansUI-Regular';
+
+    /**
+     * Method which returns the API key supplied by the user which should be passed to the tile server.
+     *
+     * By default this method will read the parameter `apikey` from the query string of the URL.
+     * If no parameter `apikey` was used, an empty string will be returned.
+     *
+     * You can overwrite this behavior by your own implementation.
+     *
+     * See doc/api_keys.md for further details.
+     *
+     */
+//    protected function getApiKey() {
+//        return '';
+//    }
+}
+?>

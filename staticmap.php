@@ -33,6 +33,9 @@ Class staticMapLite extends myStaticMap {
     protected $zoom, $lat, $lon, $width, $height, $markers, $lines, $image, $maptype;
     protected $centerX, $centerY, $offsetX, $offsetY;
 
+    /** API key used to retrieve tiles from the tile server */
+    protected $apiKey = '';
+
     public function __construct(){
         $this->zoom = 0;
         $this->lat = 0;
@@ -164,6 +167,9 @@ Class staticMapLite extends myStaticMap {
                 output_error('Font ' . $font . ' is not available. Please provide a font which accessiable for the staticmap API.');
             }
         }
+
+        // parse API key
+        $this->apiKey = $this->getApiKey();
     }
 
 
@@ -189,7 +195,7 @@ Class staticMapLite extends myStaticMap {
 
         for($x=$startX; $x<=$endX; $x++){
             for($y=$startY; $y<=$endY; $y++){
-                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($_SERVER['PATH_INFO'],$this->zoom, $x, $y), $this->tileSrcUrl[$this->maptype]);
+                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom, $x, $y), $this->tileSrcUrl[$this->maptype]);
                 $tileImage = imagecreatefromstring($this->fetchTile($url));
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
