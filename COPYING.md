@@ -23,5 +23,3 @@ limitations under the License.
 
 The fonts distributed with this repository are available under the terms of SIL
 Open Font License.
-
-The Arial font should not be in this repository.
