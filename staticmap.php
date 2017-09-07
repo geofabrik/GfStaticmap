@@ -33,6 +33,8 @@ Class staticMapLite extends myStaticMap {
     protected $zoom, $lat, $lon, $width, $height, $markers, $lines, $image, $maptype;
     protected $centerX, $centerY, $offsetX, $offsetY;
 
+    protected $tileSize = 0;
+
     /** API key used to retrieve tiles from the tile server */
     protected $apiKey = '';
 
@@ -144,9 +146,13 @@ Class staticMapLite extends myStaticMap {
             }
         }
         if($_GET['maptype']){
-            if(array_key_exists($_GET['maptype'],$this->tileSrcUrl)) $this->maptype = $_GET['maptype'];
-            if ($_GET['maptype'] == 'print') $this->tileSize = 1024;
-            if ($_GET['maptype'] == 'print150') $this->tileSize = 512;
+            if(array_key_exists($_GET['maptype'],$this->tileSources)) {
+                $this->maptype = $_GET['maptype'];
+                $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
+                $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
+            } else {
+                output_error('Unknown maptype');
+            }
         }
         if(isset($_GET['nocache'])){
             $this->doNotReadMapCache = true;
@@ -195,7 +201,7 @@ Class staticMapLite extends myStaticMap {
 
         for($x=$startX; $x<=$endX; $x++){
             for($y=$startY; $y<=$endY; $y++){
-                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom, $x, $y), $this->tileSrcUrl[$this->maptype]);
+                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom, $x, $y), $this->tileSrcUrl);
                 $tileImage = imagecreatefromstring($this->fetchTile($url));
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;

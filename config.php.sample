@@ -24,8 +24,6 @@ require 'staticMapLiteDefaults.php';
 
 Class myStaticMap extends staticMapLiteDefaults {
 
-    protected $tileSize = 256;
-
     /**
      * Available map tile sources.
      *
@@ -38,10 +36,10 @@ Class myStaticMap extends staticMapLiteDefaults {
      * * `{P}` API key. If the URL contains a variable string like an API key, insert `{P}` at
      *   the location where the API key would be inserted.
      */
-//    protected $tileSrcUrl = array(
-//            'nicemap' => 'https://tile.nicemapprovider.local/{P}/{Z}/{X}/{Y}.png',
-//            'defaultTileProvider' => 'http://tile.freeosmmaps.local/{P}/{Z}/{X}/{Y}.png'
-//            );
+//    protected $tileSources = array(
+//        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512),
+//        'cheapmapprovider' => array('url' => 'http://tile.freeosmmaps.de/{Z}/{X}/{Y}.png', 'tileSize' => 256)
+//    );
 
     /**
      * Available markers.

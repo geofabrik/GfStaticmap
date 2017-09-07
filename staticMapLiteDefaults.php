@@ -25,8 +25,6 @@
  */
 Class staticMapLiteDefaults {
 
-    protected $tileSize = 256;
-
     /**
      * Available markers.
      *
