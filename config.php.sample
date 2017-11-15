@@ -152,6 +152,28 @@ Class configuredStaticMap extends staticMapLiteDefaults {
     protected $attributionFont = 'NotoSansUI-Regular';
 
     /**
+     * Maximum number of tiles which should be fetched from a tile server to
+     * assemble an image.
+     *
+     * Any image whose width and height are smaller than 2*w (w is the width
+     * of a tile, usually 256 pixel) can be produced. Images be larger than
+     * 2*w but not larger than 3*w if they skillfully placed that they do not
+     * intersect with too much tiles.
+     *
+     * Setting this property to 0 disables this check but allows your users
+     * to make your server a heavy user of the tile server.
+     */
+    protected $maxTileCount = 9;
+
+    /**
+     * Maximum size of the map image.
+     *
+     * A request will fail if the width or the height of an image exceeds the
+     * maximum size or the maximum number of tile requests.
+     */
+    protected $maxSize = 2048;
+
+    /**
      * Method which returns the API key supplied by the user which should be
      * passed to the tile server.
      *

@@ -180,6 +180,10 @@ Class staticMapLiteDefaults {
 
     protected $attributionFont = 'NotoSansUI-Regular';
 
+    protected $maxTileCount = 9;
+
+    protected $maxSize = 2048 * 2048;
+
     protected function getApiKey() {
         if (isset($_GET['apikey'])) {
             return $_GET['apikey'];

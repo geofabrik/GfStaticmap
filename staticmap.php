@@ -105,11 +105,14 @@ Class staticMapLite extends configuredStaticMap {
         $this->lat = floatval($this->lat);
         $this->lon = floatval($this->lon);
 
-        // get zoom from GET paramter
+        // get width and height from GET paramters
         if($_GET['size']){
             list($this->width, $this->height) = explode('x',$_GET['size']);
             $this->width = intval($this->width);
             $this->height = intval($this->height);
+        }
+        if ($this->width > $this->maxSize || $this->height > $this->maxSize) {
+            output_error('The requested map image exceeds the maximum size.');
         }
 
         // markers parameter
@@ -267,6 +270,13 @@ Class staticMapLite extends configuredStaticMap {
         $this->offsetY += floor($this->height/2);
         $this->offsetX += floor($startX-floor($this->centerX))*$this->tileSize;
         $this->offsetY += floor($startY-floor($this->centerY))*$this->tileSize;
+
+        $xTiles = $endX - $startX + 1;
+        $yTiles = $endY - $startY + 1;
+        if ($xTiles * $yTiles > $this->maxTileCount && $this->maxTileCount > 0) {
+            output_error('The map you requested covers too much tiles. A map'
+                . ' must only cover ' . $this->maxTileCount . ' tiles.');
+        }
 
         for($x=$startX; $x<=$endX; $x++){
             for($y=$startY; $y<=$endY; $y++){
