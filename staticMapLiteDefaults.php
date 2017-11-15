@@ -1,7 +1,11 @@
 <?php
 
 /**
- * staticMapLite 0.02
+ * GFStaticMapLite 
+ *
+ * Copyright 2017 Geofabrik GmbH
+ *
+ * This software is based on staticmapLite 0.02
  *
  * Copyright 2009 Gerhard Koch
  *
@@ -16,12 +20,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @author Michael Reichert <michael.reichert@geofabrik.de>
  */ 
 
 /**
  * Default configuration
+ *
+ * Explanation of the properties can be found in config.sample.php file.
  */
 Class staticMapLiteDefaults {
 
@@ -30,7 +34,11 @@ Class staticMapLiteDefaults {
      *
      * Properties:
      *
-     * * `filename`: filename relative to the `$markerBaseDir`
+     * * `filename`: filename relative to the `$markerBaseDir` pointing to a
+     *   greyscale image of the marker
+     * * `maskname`: filename relative to the `$markerBaseDir` pointing to a
+     *   image whose black pixels will be filled with the marker color. The
+     *   marker image (`filename` property) will be placed on top of it.
      * * `width`: width of the marker
      * * `height`: height of the marker
      * * `hotx`: x coordinate of the "tip" of the marker
@@ -38,7 +46,8 @@ Class staticMapLiteDefaults {
      * * `textx`: x coordinate of the text label
      * * `texty`: y coordinate of the text label
      * * `textsize`: size of the text
-     * * `font`: font file to be used. This must be TTF font located in the fonts/ directory.
+     * * `font`: font file to be used. This must be TTF font located in the
+     *   fonts/ directory.
      */
     protected $markerLookup = array (
             'default/marker' => array(
@@ -151,41 +160,26 @@ Class staticMapLiteDefaults {
                 ),
             );
 
-    /** Marker directory */
     protected $markerBaseDir = 'images';
 
-    /** Font directory */
     protected $fontBaseDir = 'fonts/';
 
-    protected $useTileCache = false;
+    protected $useTileCache = true;
 
-    /** Directory of the tile cache */
     protected $tileCacheBaseDir = 'cache/tiles';
 
     protected $useMapCache = true;
-    protected $doNotWriteMapCache = false;
+
     protected $doNotReadMapCache = false;
 
-    /** Directory of the cache of composed maps */
-    protected $mapCacheBaseDir = 'cache/maps';
-    protected $mapCacheID = '';
-    protected $mapCacheFile = '';
-    protected $mapCacheExtension = 'png';
+    protected $ignoreNoCacheProperty = false;
 
-    /** Should an attribution text being added at the lower right corner of the image by default? */
+    protected $mapCacheBaseDir = 'cache/maps';
+
     protected $attribution = true;
 
-    /** Font of the attribution text */
     protected $attributionFont = 'NotoSansUI-Regular';
 
-    /** Return tileSrcUrl array */
-    public function getTileSrcUrls() {
-        return $tileSrcUrl;
-    }
-
-    /**
-     * Method which returns the API key supplied by the user which should be passed to the tile server.
-     */
     protected function getApiKey() {
         if (isset($_GET['apikey'])) {
             return $_GET['apikey'];

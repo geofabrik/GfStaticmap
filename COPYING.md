@@ -3,7 +3,12 @@ The legal code of the licenses can be found in the licenses subdirectory.
 
 # Software 
 
-staticMapLite
+GFStaticMap
+
+Copyright 2017 Geofabrik GmbH
+
+GFStaticMap is available under the terms of the Apache License 2.0 (see below)
+and based on staticMapLite 0.02
 
 Copyright 2009 Gerhard Koch
 

@@ -28,15 +28,56 @@ require 'config.php';
 require 'marker.php';
 require 'linestring.php';
 
-Class staticMapLite extends myStaticMap {
+/**
+ * implementation of the staticMap
+ */
+Class staticMapLite extends configuredStaticMap {
+    /** zoom level of the map */
+    protected $zoom;
 
-    protected $zoom, $lat, $lon, $width, $height, $markers, $lines, $image, $maptype;
+    /** latitude of the center of the map */
+    protected $lat;
+
+    /** longitude of the center of the map */
+    protected $lon;
+
+    /** width of the map */
+    protected $width;
+
+    /** height of the map */
+    protected $height;
+
+    /** markers to be added to the map */
+    protected $markers;
+
+    /** lines/areas to be added to the map */
+    protected $lines;
+
+    /** the map image */
+    protected $image;
+
+    /** base map style to be used */
+    protected $maptype;
+
     protected $centerX, $centerY, $offsetX, $offsetY;
 
+    /** size of the tiles of the basemap */
     protected $tileSize = 0;
 
     /** API key used to retrieve tiles from the tile server */
     protected $apiKey = '';
+
+    /** MD5 sum of the query parameters, used as key in the map cache */
+    protected $mapCacheID = '';
+    protected $mapCacheFile = '';
+    protected $mapCacheExtension = 'png';
+
+    /**
+     * Shold the image not be written to the map cache.
+     * This property will be set to true if the retrieval of a tile fails and
+     * no useful image could be produced.
+     */
+    protected $doNotWriteMapCache = false;
 
     public function __construct(){
         $this->zoom = 0;
@@ -49,6 +90,9 @@ Class staticMapLite extends myStaticMap {
         $this->maptype = $this->tileDefaultSrc;
     }
 
+    /**
+     * Parse parameters (query string)
+     */
     public function parseParams(){
         global $_GET;
 
@@ -67,6 +111,8 @@ Class staticMapLite extends myStaticMap {
             $this->width = intval($this->width);
             $this->height = intval($this->height);
         }
+
+        // markers parameter
         if(isset($_GET['markers'])){
             $markerCount = 1;
             // split up into markers
@@ -80,11 +126,13 @@ Class staticMapLite extends myStaticMap {
                     list($key, $value) = explode(':', $pair, 2);
                     $params[trim($key)] = trim($value);
                 }
+                // parse parameters lat, lon and image – they are mandatory
                 if (isset($params['lat']) && isset($params['lon']) && isset($params['image'])) {
                     $markerLat = floatval($params['lat']);
                     $markerLon = floatval($params['lon']);
                     $markerImage = basename($params['image']);
                     $markerColor = new Color(255, 0, 0, 255);
+                    // parse color
                     if (isset($params['color'])) {
                         $markerColor = Color::colorFromHex($params['color']);
                     }
@@ -92,6 +140,7 @@ Class staticMapLite extends myStaticMap {
                     if (isset($params['fontcolor'])) {
                         $fontColor = Color::colorFromHex($params['fontcolor']);
                     }
+                    // parse parameter label or use index of the marker if label is not set
                     $markerLabel = (string)$markerCount;
                     if (isset($params['label'])) {
                         if (strlen($params['label']) > 1) {
@@ -101,21 +150,28 @@ Class staticMapLite extends myStaticMap {
                     } else if ($markerCount > 9) {
                         output_error('More than 9 unlabelled markers.');
                     }
+                    // label font
                     if (isset($params['font'])) {
                         $font = $params['font'];
                         if (!is_readable($this->fontBaseDir . $font . '.ttf')) {
-                            output_error('Font ' . $font . ' is not available. Please provide a font which accessiable for the staticmap API.');
+                            output_error('Font ' . $font . ' is not available. Please provide a ' .
+                                'font which accessiable for the staticmap API.');
                         }
-                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel, $font);
+                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
+                            $markerColor, $fontColor, $markerLabel, $font);
                     } else {
-                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage, $markerColor, $fontColor, $markerLabel);
+                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
+                            $markerColor, $fontColor, $markerLabel);
                     }
                     $markerCount++;
                 } else {
-                    output_error('One of the mandatory marker arguments is missing: lat, lon, image');
+                    output_error('One of the mandatory marker arguments is missing: lat, lon, ' .
+                        'image');
                 }
             }
         }
+
+        // path parameter
         if (isset($_GET['path'])) {
             // split up into single paths
             $paths = preg_split('/%7C|\|/', $_GET['path']);
@@ -142,9 +198,12 @@ Class staticMapLite extends myStaticMap {
                 if (isset($params['width']) && is_numeric($params['width'])) {
                     $lineWidth = intVal($params['width']);
                 }
-                $this->lines[] = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
+                $this->lines[] = buildLineString($params['points'], $lineColor, $lineWidth,
+                    $fillColor);
             }
         }
+
+        // maptype parameter
         if($_GET['maptype']){
             if(array_key_exists($_GET['maptype'],$this->tileSources)) {
                 $this->maptype = $_GET['maptype'];
@@ -154,9 +213,13 @@ Class staticMapLite extends myStaticMap {
                 output_error('Unknown maptype');
             }
         }
-        if(isset($_GET['nocache'])){
+
+        // mapcache parameter
+        if(isset($_GET['nocache']) && !$this->ignoreNoCacheProperty){
             $this->doNotReadMapCache = true;
         }
+
+        // attribution parameter
         if(isset($_GET['attribution'])) {
            if ($_GET['attribution'] == 'false'){
                $this->attribution = false;
@@ -164,13 +227,16 @@ Class staticMapLite extends myStaticMap {
                output_error('Illegal option for parameter \'attribution\'');
            }
         }
+
+        // attribution-font parameter
         if (isset($_GET['attribution-font'])) {
             $this->attributionFont = $_GET['attribution-font'];
             if (strlen($this->attributionFont) == 0) {
                 output_error('Missing font name for attribution text.');
             }
             if (!is_readable($this->fontBaseDir . $this->attributionFont . '.ttf')) {
-                output_error('Font ' . $font . ' is not available. Please provide a font which accessiable for the staticmap API.');
+                output_error('Font ' . $font . ' is not available. Please provide a font which ' .
+                   'accessiable for the staticmap API.');
             }
         }
 
@@ -186,6 +252,9 @@ Class staticMapLite extends myStaticMap {
         $this->offsetY = floor((floor($this->centerY)-$this->centerY)*$this->tileSize);
     }
 
+    /**
+     * Create the base map (fetching tiles and placing them at the correct locations)
+     */
     public function createBaseMap(){
         $this->image = imagecreatetruecolor($this->width, $this->height);
         $startX = floor($this->centerX-($this->width/$this->tileSize)/2);
@@ -201,34 +270,60 @@ Class staticMapLite extends myStaticMap {
 
         for($x=$startX; $x<=$endX; $x++){
             for($y=$startY; $y<=$endY; $y++){
-                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom, $x, $y), $this->tileSrcUrl);
-                $tileImage = imagecreatefromstring($this->fetchTile($url));
+                $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom,
+                    $x, $y), $this->tileSrcUrl); $tileImage =
+                    imagecreatefromstring($this->fetchTile($url));
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
-                imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize, $this->tileSize);
-            }
+                imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize,
+                    $this->tileSize); }
         }
     }
 
+    /**
+     * Create an image which contains marker or a colorized marker mask.
+     *
+     * This method does not add the marker to the map image.
+     *
+     * @param markerFilename path to the marker
+     *
+     * @param markerLookupResult marker returned from $this->markerLookup array
+     *
+     * @param colorize Is the image to be added a mask to be colorized?
+     *
+     * @param marker array with the parameters describing the marker
+     *
+     * @return array with the X coordinate of the upper left corner as first
+     * element and the Y coordinate of the upper left corner as second element.
+     */
     protected function addMarkerOrMask($markerFilename, $markerLookupResult, $colorize, $marker) {
         if (!file_exists($markerFilename)) return;
         $markerImg = imagecreatefrompng($markerFilename);
-        $destX = floor(($this->width/2)-$this->tileSize*($this->centerX - lonToTile($marker->lon, $this->zoom)));
-        $destY = floor(($this->height/2)-$this->tileSize*($this->centerY - latToTile($marker->lat, $this->zoom)));
+        $destX = floor(($this->width/2)-$this->tileSize*($this->centerX - lonToTile($marker->lon,
+            $this->zoom)));
+        $destY = floor(($this->height/2)-$this->tileSize*($this->centerY -
+            latToTile($marker->lat, $this->zoom)));
         $destY = $destY - $markerLookupResult['hoty'];
         $destX = $destX - $markerLookupResult['hotx'];
+        // fill all black pixels of the image with the color of the marker
         if ($colorize) {
-            imagefilter($markerImg, IMG_FILTER_COLORIZE, $marker->color->red, $marker->color->green, $marker->color->blue);
+            imagefilter($markerImg, IMG_FILTER_COLORIZE, $marker->color->red, $marker->color->green,
+                $marker->color->blue);
         }
-        imagecopy($this->image, $markerImg, $destX, $destY, 0, 0, imagesx($markerImg), imagesy($markerImg));
-        return array($destX, $destY);
+        // add the marker to the map image
+        imagecopy($this->image, $markerImg, $destX, $destY, 0, 0, imagesx($markerImg),
+            imagesy($markerImg)); return array($destX, $destY);
     }
 
+    /**
+     * Render the markers on the map.
+     */
     public function placeMarkers() {
         foreach($this->markers as $marker){
             $markerLat = $marker->lat;
             $markerLon = $marker->lon;
             $markerImage = $marker->image;
+            // retrieve the marker details from the array of the available marker icons
             $mlu = $this->markerLookup[$this->maptype.'/'.$marker->image];
             $markerFilename = $this->markerBaseDir.'/'.$mlu['filename'];
             $markerMaskname = $this->markerBaseDir.'/'.$mlu['maskname'];
@@ -242,30 +337,48 @@ Class staticMapLite extends myStaticMap {
 
             // place label (1st marker=1 etc)
             $fontColor = $marker->fontColor->allocate($this->image);
-            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2, $destY + $mlu['texty'], $fontColor, $font, $marker->label);
-        };
+            imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2,
+                $destY + $mlu['texty'], $fontColor, $font, $marker->label); };
     }
 
+    /**
+     * Render the lines/polygons on the map.
+     */
     public function placeLines() {
         foreach($this->lines as $line) {
             // build array of points transformed to pixel coordinates
-            list($gdPArray, $numPoints) = $line->gdPointsArray($this->width, $this->height, $this->centerX, $this->centerY, $this->zoom, $this->tileSize);
+            list($gdPArray, $numPoints) = $line->gdPointsArray($this->width, $this->height,
+                $this->centerX, $this->centerY, $this->zoom, $this->tileSize);
 
             if (!($line->fillColor->isTransparent()) && $line->isClosed()) {
-                imagefilledpolygon($this->image, $gdPArray, $numPoints, $line->fillColor->allocate($this->image));
+                imagefilledpolygon($this->image, $gdPArray, $numPoints,
+                    $line->fillColor->allocate($this->image));
             }
             for ($i = 0; $i < $line->length() - 1; $i++) {
                 imagesetthickness($this->image, $line->width);
-                imageline($this->image, $gdPArray[$i * 2], $gdPArray[$i * 2 + 1], $gdPArray[$i * 2 + 2], $gdPArray[$i * 2 + 3], $line->lineColor->allocate($this->image));
+                imageline($this->image, $gdPArray[$i * 2], $gdPArray[$i * 2 + 1],
+                    $gdPArray[$i * 2 + 2], $gdPArray[$i * 2 + 3],
+                    $line->lineColor->allocate($this->image));
             }
         }
     }
 
-
+    /**
+     * Build a path where to store a tile to be cached based on its URL.
+     *
+     * @return the destination path
+     */
     public function tileUrlToFilename($url){
         return $this->tileCacheBaseDir."/".str_replace(array('http://'),'',$url);
     }
 
+    /**
+     * Check if a tile is available in the cache.
+     *
+     * @param url URL the tile was retrieved from.
+     *
+     * @return true if found in the cache, false otherwise
+     */
     public function checkTileCache($url){
         $filename = $this->tileUrlToFilename($url);
         if(file_exists($filename)){
@@ -273,6 +386,19 @@ Class staticMapLite extends myStaticMap {
         }
     }
 
+    /**
+     * Check if a file is already stored in the map cache.
+     *
+     * The cache is file based and uses the MD5 hash of the query parameters as
+     * key (filename). The MD5 hash is generated from a serialization of the
+     * parsed parameters, not from the original query string.
+     *
+     * There is no expiry mechanism.
+     *
+     * This method returns false if the cache is disabled.
+     *
+     * @param true if the map was found in the cache, false otherwise
+     */
     public function checkMapCache(){
         if ($this->doNotReadMapCache) return false;
         $this->mapCacheID = md5($this->serializeParams());
@@ -281,29 +407,60 @@ Class staticMapLite extends myStaticMap {
         return false;
     }
 
+    /**
+     * Helper function for checkMapCache() to provide a string which will be
+     * hashed and used as key for the cache.
+     *
+     * @return MD5 hash of the serialized parameters
+     */
     public function serializeParams(){		
-        return join("&",array($this->zoom,$this->lat,$this->lon,$this->width,$this->height, serialize($this->markers),$this->maptype));
+        return join("&",array($this->zoom, $this->lat, $this->lon, $this->width, $this->height,
+            serialize($this->markers), $this->maptype));
     }
 
+    /**
+     * Convert a cache key (MD5 hash) into the path where the image is store.
+     */
     public function mapCacheIDToFilename(){
+        //TODO make this a function which receives the hash as a parameter
+        //instead of using a property of the instance of the class.
         if(!$this->mapCacheFile){
-            $this->mapCacheFile = $this->mapCacheBaseDir."/".substr($this->mapCacheID,0,2)."/".substr($this->mapCacheID,2,2)."/".substr($this->mapCacheID,4);
+            $this->mapCacheFile = $this->mapCacheBaseDir . "/" . substr($this->mapCacheID,0,2) . "/"
+                . substr($this->mapCacheID,2,2) . "/" . substr($this->mapCacheID,4);
         }
         return $this->mapCacheFile.".".$this->mapCacheExtension;
     }
 
-
-
+    /**
+     * Create a directory and its parents if they do not exist.
+     *
+     * @param pathname path
+     *
+     * @param mode file mode bits (Unix file permissions), e.g. 770, as integer
+     */
     public function mkdir_recursive($pathname, $mode){
         is_dir(dirname($pathname)) || $this->mkdir_recursive(dirname($pathname), $mode);
         return is_dir($pathname) || @mkdir($pathname, $mode);
     }
+
+    /**
+     * Write a tile to be cached to the disk.
+     *
+     * @param url URL the tile was downloaded from
+     *
+     * @param data binary data of the tile
+     */
     public function writeTileToCache($url, $data){
         $filename = $this->tileUrlToFilename($url);
         $this->mkdir_recursive(dirname($filename),0777);
         file_put_contents($filename, $data);
     }
 
+    /**
+     * Fetch a tile from a URL.
+     *
+     * @param url URL the tile should be downloaded from
+     */
     public function fetchTile($url){
         if($this->useTileCache && ($cached = $this->checkTileCache($url))) return $cached;
         $ch = curl_init(); 
@@ -338,10 +495,16 @@ Class staticMapLite extends myStaticMap {
         $height = abs($bbox[5] - $bbox[1]);
         $black = imagecolorallocate($this->image, 0, 0, 0);
         $transparentWhite = imagecolorallocatealpha($this->image, 255, 255, 255, 60);
-        imagefilledrectangle($this->image, imagesx($this->image) - $length - 2, imagesy($this->image) - $height - 4, imagesx($this->image), imagesy($this->image), $transparentWhite);
-        imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1, imagesy($this->image) - 4, $black, $font, $attributionText);
+        imagefilledrectangle($this->image, imagesx($this->image) - $length - 2,
+            imagesy($this->image) - $height - 4, imagesx($this->image), imagesy($this->image),
+            $transparentWhite);
+        imagettftext($this->image, 8, 0, imagesx($this->image) - $length - 1,
+            imagesy($this->image) - 4, $black, $font, $attributionText);
     }
 
+    /**
+     * Send HTTP headers to the client.
+     */
     public function sendHeader(){
         header('Content-Type: image/png');
         $expires = 60*60*24*14;
@@ -385,7 +548,7 @@ Class staticMapLite extends myStaticMap {
             }
 
         } else {
-            // no cache, make map, send headers and deliver png
+        // no cache, make map, send headers and deliver png
             $this->makeMap();
             $this->sendHeader();	
             return imagepng($this->image);		

@@ -1,7 +1,11 @@
 <?php
 
 /**
- * staticMapLite 0.02
+ * GFStaticMapLite 
+ *
+ * Copyright 2017 Geofabrik GmbH
+ *
+ * This software is based on staticmapLite 0.02
  *
  * Copyright 2009 Gerhard Koch
  *
@@ -16,13 +20,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @author Michael Reichert <michael.reichert@geofabrik.de>
  */ 
 
 require 'staticMapLiteDefaults.php';
 
-Class myStaticMap extends staticMapLiteDefaults {
+Class configuredStaticMap extends staticMapLiteDefaults {
 
     /**
      * Available map tile sources.
@@ -30,11 +32,11 @@ Class myStaticMap extends staticMapLiteDefaults {
      * The parameters `{X}`, `{Y}` and `{Z}` must be used in the URL
      * and represent the X, Y and Z index of the map tiles.
      *
-     * Following parameters are optional and only have to be set if the tile server
-     * needs them:
+     * Following parameters are optional and only have to be set if the tile
+     * server needs them:
      *
-     * * `{P}` API key. If the URL contains a variable string like an API key, insert `{P}` at
-     *   the location where the API key would be inserted.
+     * * `{P}` API key. If the URL contains a variable string like an API key,
+     * insert `{P}` at the location where the API key would be inserted.
      */
 //    protected $tileSources = array(
 //        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512),
@@ -48,7 +50,11 @@ Class myStaticMap extends staticMapLiteDefaults {
      *
      * Properties:
      *
-     * * `filename`: filename relative to the `$markerBaseDir`
+     * * `filename`: filename relative to the `$markerBaseDir` pointing to a
+     *   greyscale image of the marker
+     * * `maskname`: filename relative to the `$markerBaseDir` pointing to a
+     *   image whose black pixels will be filled with the marker color. The
+     *   marker image (`filename` property) will be placed on top of it.
      * * `width`: width of the marker
      * * `height`: height of the marker
      * * `hotx`: x coordinate of the "tip" of the marker
@@ -56,7 +62,8 @@ Class myStaticMap extends staticMapLiteDefaults {
      * * `textx`: x coordinate of the text label
      * * `texty`: y coordinate of the text label
      * * `textsize`: size of the text
-     * * `font`: font file to be used. This must be TTF font located in the fonts/ directory.
+     * * `font`: font file to be used. This must be TTF font located in the
+     *   fonts/ directory.
      */
 //    protected $markerLookup = array (
 //            'default/marker' => array(
@@ -100,45 +107,67 @@ Class myStaticMap extends staticMapLiteDefaults {
     protected $tileDefaultSrc = 'defaultTileProvider';
 
     /** Marker directory */
-//    protected $markerBaseDir = 'images';
+    protected $markerBaseDir = 'images';
 
     /** Font directory */
-//    protected $fontBaseDir = 'fonts/';
+    protected $fontBaseDir = 'fonts/';
 
-//    protected $useTileCache = false;
+    /** Should downloaded tiles be cached on server side */
+    protected $useTileCache = true;
 
     /** Directory of the tile cache */
-//    protected $tileCacheBaseDir = 'cache/tiles';
+    protected $tileCacheBaseDir = 'cache/tiles';
 
-//    protected $useMapCache = true;
-//    protected $doNotWriteMapCache = false;
-//    protected $doNotReadMapCache = false;
-
-    /** Directory of the cache of composed maps */
-//    protected $mapCacheBaseDir = 'cache/maps';
-//    protected $mapCacheID = '';
-//    protected $mapCacheFile = '';
-//    protected $mapCacheExtension = 'png';
-
-    /** Should an attribution text being added at the lower right corner of the image by default? */
-//    protected $attribution = true;
-
-    /** Font of the attribution text */
-//    protected $attributionFont = 'NotoSansUI-Regular';
+    /** Should produced images ("maps") be cached on server side? */
+    protected $useMapCache = true;
 
     /**
-     * Method which returns the API key supplied by the user which should be passed to the tile server.
+     * Shold the map cache be ignored by default?                                                                                      
      *
-     * By default this method will read the parameter `apikey` from the query string of the URL.
-     * If no parameter `apikey` was used, an empty string will be returned.
+     * This property will be overwritten if the user adds `nocache=true/false`
+     * to the query string if `$this->$ignoreCacheProperty` is se to true.                                                                
+     */
+    protected $doNotReadMapCache = false;
+
+    /**
+     * Should staticmap.php ignore the `nocache=true/false` property of the
+     * query string? It is recommended to set this property to true to avoid DoS
+     * attacks but it hinders development if you use this instance for testing.                                                        
+     */
+    protected $ignoreNoCacheProperty = false;
+
+    /** Directory of the cache of composed maps */
+    protected $mapCacheBaseDir = 'cache/maps';
+    protected $mapCacheID = '';
+    protected $mapCacheFile = '';
+    protected $mapCacheExtension = 'png';
+
+    /**
+     * Should an attribution text being added at the lower right corner of the
+     * image by default?
+     */
+    protected $attribution = true;
+
+    /** Font of the attribution text */
+    protected $attributionFont = 'NotoSansUI-Regular';
+
+    /**
+     * Method which returns the API key supplied by the user which should be
+     * passed to the tile server.
      *
-     * You can overwrite this behavior by your own implementation.
+     * By default this method will read the parameter `apikey` from the query
+     * string of the URL.  If no parameter `apikey` was used, an empty string
+     * will be returned.
+     *
+     * You can overwrite this behavior by your own implementation. If the API
+     * key is hardcoded anywhere in your configuration or should be extracted
+     * out of the path or query string in a different way.
      *
      * See doc/api_keys.md for further details.
      *
      */
-//    protected function getApiKey() {
-//        return '';
-//    }
+    protected function getApiKey() {
+        return '';
+    }
 }
 ?>
