@@ -1,0 +1,6 @@
+cache/
+.*.swp
+config.php
+README.html
+USAGE.html
+doc/*.html
