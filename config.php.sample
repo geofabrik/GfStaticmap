@@ -156,7 +156,7 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      * assemble an image.
      *
      * Any image whose width and height are smaller than 2*w (w is the width
-     * of a tile, usually 256 pixel) can be produced. Images be larger than
+     * of a tile, usually 256 pixel) can be produced. Images can be larger than
      * 2*w but not larger than 3*w if they skillfully placed that they do not
      * intersect with too much tiles.
      *
