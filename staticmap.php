@@ -207,14 +207,14 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // maptype parameter
-        if($_GET['maptype']){
-            if(array_key_exists($_GET['maptype'],$this->tileSources)) {
-                $this->maptype = $_GET['maptype'];
-                $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
-                $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
-            } else {
-                output_error('Unknown maptype');
-            }
+        if(array_key_exists('maptype', $_GET)) {
+            $this->maptype = $_GET['maptype'];
+        }
+        if(array_key_exists($this->maptype, $this->tileSources)) {
+            $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
+            $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
+        } else {
+            output_error('Unknown maptype ' . $this->maptype);
         }
 
         // mapcache parameter
