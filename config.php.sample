@@ -104,7 +104,7 @@ Class configuredStaticMap extends staticMapLiteDefaults {
 //                )
 //            );
 
-    protected $tileDefaultSrc = 'defaultTileProvider';
+    protected $tileDefaultSrc = 'cheapmapprovider';
 
     /** Marker directory */
     protected $markerBaseDir = 'images';
