@@ -37,11 +37,29 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      *
      * * `{P}` API key. If the URL contains a variable string like an API key,
      * insert `{P}` at the location where the API key would be inserted.
+     * The method configuredStaticMap->getApiKey() extracts the API key from
+     * the URL (see below).
      */
 //    protected $tileSources = array(
 //        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512),
 //        'cheapmapprovider' => array('url' => 'http://tile.freeosmmaps.de/{Z}/{X}/{Y}.png', 'tileSize' => 256)
 //    );
+
+    /**
+     * Method which returns the API key supplied by the user which should be
+     * passed to the tile server.
+     *
+     * If your tile providers do not require API keys, just replace the
+     * implementation by a simple `return '';` or leave it as it is.
+     *
+     * See doc/api_keys.md for further details.
+     */
+    protected function getApiKey() {
+        if (isset($_GET['apikey'])) {
+            return $_GET['apikey'];
+        }
+        return '';
+    }
 
     /**
      * Available markers.
@@ -172,24 +190,5 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      * maximum size or the maximum number of tile requests.
      */
     protected $maxSize = 2048;
-
-    /**
-     * Method which returns the API key supplied by the user which should be
-     * passed to the tile server.
-     *
-     * By default this method will read the parameter `apikey` from the query
-     * string of the URL.  If no parameter `apikey` was used, an empty string
-     * will be returned.
-     *
-     * You can overwrite this behavior by your own implementation. If the API
-     * key is hardcoded anywhere in your configuration or should be extracted
-     * out of the path or query string in a different way.
-     *
-     * See doc/api_keys.md for further details.
-     *
-     */
-    protected function getApiKey() {
-        return '';
-    }
 }
 ?>
