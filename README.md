@@ -10,7 +10,7 @@ of StaticMapLite by Harald Koch but was extended by following features:
 
 # API Documentation
 
-See [USAGE.md](USAGE.md).
+See [doc/usage.md](doc/usage.md).
 
 
 # Setup
