@@ -27,7 +27,7 @@ All other parameters control overlays and attribution
 Each marker is a key-value list:
 
 ```
-&marker=lat:<latitude>,lon:<longitude>,image:<image>|lat:<latitude>,lon:<longitude>,image:<image>
+&markers=lat:<latitude>,lon:<longitude>,image:<image>|lat:<latitude>,lon:<longitude>,image:<image>
 ```
 
 Following keys are available:
@@ -47,6 +47,19 @@ Following marker icons are available:
 * `pin`: a pin
 * `marker`: marker icon as used by the Leaflet JavaScript library
 * `ol-marker`: marker icon as used by the OpenLayers 2 JavaScript library, text will be placed outside the icon (and maybe outside the image)
+
+#### Legacy marker syntax
+
+**This syntax is legacy. Please migrate to the new syntax which is more flexible and has more features.**
+
+The old marker syntax is still supported. It is a pipe-separated list of markers but each marker definition is a comma-separated list. The
+order of the elements in that list is `lat`, `lon`, `image`.
+
+`&markers=<latitude1>,<longitude1>,<image1>,<label1>|<latitude2>,<longitude2>,<image2>,<label2>` could be rewritten as
+`&markers=lat:<latitude1>,lon:<longitude1>,image:<image1>,label:<label1>|lat:<latitude2>,lon:<longitude2>,image:<image2>,label:<label2>`.
+
+The comma-separated list must contain at least three elements, the forth element (the label) is optional. Any further elements are silently ignored.
+
 
 ### Lines (optional)
 

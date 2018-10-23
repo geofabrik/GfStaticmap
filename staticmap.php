@@ -121,13 +121,30 @@ Class staticMapLite extends configuredStaticMap {
             // split up into markers
             $markers = preg_split('/%7C|\|/',$_GET['markers']);
             foreach($markers as $marker){
-                // split up by , into key:value pairs
-                $kvPairs = explode(',', $marker);
                 // build array of keys and values
                 $params = array();
-                foreach($kvPairs as $pair) {
-                    list($key, $value) = explode(':', $pair, 2);
-                    $params[trim($key)] = trim($value);
+                // First check if the marker definition contains a comma.
+                // If it does not, it is the legacy version which we support here.
+                $colon_pos = strpos($marker, ':', 1);
+                if (!$colon_pos or $colon_pos < strlen($marker) - 1) {
+                    // No colon in the string and the colon is not used as label character.
+                    // This is parsing of the legacy syntax.
+                    $parts = explode(',', $marker);
+                    if (count($parts) < 3) {
+                        output_error('The marker definition was interpreted using the legacy syntax but it contained less than 4 elements for one or multiple markers.');
+                    }
+                    $params['lat'] = $parts[0];
+                    $params['lon'] = $parts[1];
+                    $params['image'] = $parts[2];
+                    $params['label'] = $parts[3];
+                } else {
+                    // New syntax.
+                    // split up by , into key:value pairs
+                    $kvPairs = explode(',', $marker);
+                    foreach($kvPairs as $pair) {
+                        list($key, $value) = explode(':', $pair, 2);
+                        $params[trim($key)] = trim($value);
+                    }
                 }
                 // parse parameters lat, lon and image – they are mandatory
                 if (isset($params['lat']) && isset($params['lon']) && isset($params['image'])) {
