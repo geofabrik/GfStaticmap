@@ -126,7 +126,7 @@ Class staticMapLite extends configuredStaticMap {
                 // First check if the marker definition contains a comma.
                 // If it does not, it is the legacy version which we support here.
                 $colon_pos = strpos($marker, ':', 1);
-                if (!$colon_pos or $colon_pos < strlen($marker) - 1) {
+                if (!$colon_pos or $colon_pos >= strlen($marker) - 1) {
                     // No colon in the string and the colon is not used as label character.
                     // This is parsing of the legacy syntax.
                     $parts = explode(',', $marker);
@@ -298,8 +298,8 @@ Class staticMapLite extends configuredStaticMap {
         for($x=$startX; $x<=$endX; $x++){
             for($y=$startY; $y<=$endY; $y++){
                 $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom,
-                    $x, $y), $this->tileSrcUrl); $tileImage =
-                    imagecreatefromstring($this->fetchTile($url));
+                    $x, $y), $this->tileSrcUrl);
+                $tileImage = imagecreatefromstring($this->fetchTile($url));
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
                 imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize,
