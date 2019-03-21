@@ -37,7 +37,7 @@ class LineString {
     }
 
     public function addPoint($point) {
-        $this->points[] = $point;
+        array_push($this->points, $point);
     }
 
     public function length() {

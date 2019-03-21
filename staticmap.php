@@ -51,7 +51,7 @@ Class staticMapLite extends configuredStaticMap {
     protected $markers;
 
     /** lines/areas to be added to the map */
-    protected $lines;
+    protected $lines = array();
 
     /** the map image */
     protected $image;
@@ -136,7 +136,9 @@ Class staticMapLite extends configuredStaticMap {
                     $params['lat'] = $parts[0];
                     $params['lon'] = $parts[1];
                     $params['image'] = $parts[2];
-                    $params['label'] = $parts[3];
+                    if (count($parts) > 3) {
+                        $params['label'] = $parts[3];
+                    }
                 } else {
                     // New syntax.
                     // split up by , into key:value pairs
@@ -218,8 +220,8 @@ Class staticMapLite extends configuredStaticMap {
                 if (isset($params['width']) && is_numeric($params['width'])) {
                     $lineWidth = intVal($params['width']);
                 }
-                $this->lines[] = buildLineString($params['points'], $lineColor, $lineWidth,
-                    $fillColor);
+                $ls = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
+                array_push($this->lines, $ls);
             }
         }
 
