@@ -63,16 +63,16 @@ The comma-separated list must contain at least three elements, the forth element
 
 ### Lines (optional)
 
-* `paths`: a pipe-separated list of paths. Each marker is a comma-separated key-value store. Keys and values are separated by colons (`:`):
+* `path`: a pipe-separated list of paths. Each marker is a comma-separated key-value store. Keys and values are separated by colons (`:`):
 
 ```
-&paths=<path1>|<path2>|<path3
+&path=<path1>|<path2>|<path3>
 ```
 
 Each path is a key-value list:
 
 ```
-&paths=points:(<lon1> <lat1>)(<lon2> <lat2>)(<lon3><lat3>),color:<color>|points:(<lon1> <lat1>)(<lon2> <lat2),color:<color>
+&path=points:(<lon1> <lat1>)(<lon2> <lat2>)(<lon3><lat3>),color:<color>|points:(<lon1> <lat1>)(<lon2> <lat2),color:<color>
 ```
 
 Following keys are available:
