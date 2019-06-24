@@ -301,7 +301,13 @@ Class staticMapLite extends configuredStaticMap {
             for($y=$startY; $y<=$endY; $y++){
                 $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom,
                     $x, $y), $this->tileSrcUrl);
-                $tileImage = imagecreatefromstring($this->fetchTile($url));
+                try {
+                    $tileData = $this->fetchTile($url);
+                    $tileImage = imagecreatefromstring($tileData);
+                } catch (Exception $ex) {
+                    error_log('Tile request exception: ' . $ex->getMessage());
+                    output_error('Failed to build your map image. Do you use the correct API key? Please email info@geofabrik.de if this error persists.');
+                }
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
                 imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize,
@@ -496,7 +502,9 @@ Class staticMapLite extends configuredStaticMap {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
         curl_setopt($ch, CURLOPT_TIMEOUT, 300); 
         curl_setopt($ch, CURLOPT_USERAGENT, "staticmaps.php");
-        curl_setopt($ch, CURLOPT_URL, $url); 
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
         if ($tile = curl_exec($ch))
         {
             if($this->useTileCache){
@@ -506,6 +514,11 @@ Class staticMapLite extends configuredStaticMap {
         else
         {
             $this->doNotWriteMapCache = 1;
+        }
+        $statusCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        if ($statusCode != 200 && $statusCode != 304) {
+            curl_close($ch);
+            throw new Exception('Error: HTTP status code ' . $statusCode . ' returned for tile request ' . $url);
         }
         curl_close($ch); 
         return $tile;
