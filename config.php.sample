@@ -41,7 +41,7 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      * the URL (see below).
      */
 //    protected $tileSources = array(
-//        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512),
+//        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512, 'useTileCache' => false),
 //        'cheapmapprovider' => array('url' => 'http://tile.freeosmmaps.de/{Z}/{X}/{Y}.png', 'tileSize' => 256)
 //    );
 
@@ -130,7 +130,9 @@ Class configuredStaticMap extends staticMapLiteDefaults {
     /** Font directory */
     protected $fontBaseDir = 'fonts/';
 
-    /** Should downloaded tiles be cached on server side */
+    /** Should downloaded tiles be cached on server side?
+     *  This can be overwritten for some or all sources in the tileSources setting.
+     */
     protected $useTileCache = true;
 
     /** Directory of the tile cache */

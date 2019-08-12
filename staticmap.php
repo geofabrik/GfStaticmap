@@ -231,7 +231,11 @@ Class staticMapLite extends configuredStaticMap {
         }
         if(array_key_exists($this->maptype, $this->tileSources)) {
             $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
-            $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
+	    $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
+            // If useTileCache is set for this source, overwrite global setting.
+	    if (array_key_exists('useTileCache', $this->tileSources[$this->maptype])) {
+                $this->useTileCache = $this->tileSources[$this->maptype]['useTileCache'];
+            }
         } else {
             output_error('Unknown maptype ' . $this->maptype);
         }
