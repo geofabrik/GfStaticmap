@@ -511,7 +511,8 @@ Class staticMapLite extends configuredStaticMap {
         curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
         if ($tile = curl_exec($ch))
         {
-            if($this->useTileCache){
+            $statusCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            if($statusCode == 200 && $this->useTileCache){
                 $this->writeTileToCache($url,$tile);
             }
         }
