@@ -3,8 +3,8 @@
 require 'color.php';
 require 'toTile.php';
 
-function output_error($message) {
-    http_response_code(400);
+function output_error($message, $statusCode=400) {
+    http_response_code($statusCode);
     header('Content-Type: text/plain');
     $expires = 60*60*24*14;
     header("Pragma: public");

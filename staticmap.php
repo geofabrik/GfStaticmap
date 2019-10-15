@@ -79,6 +79,11 @@ Class staticMapLite extends configuredStaticMap {
      */
     protected $doNotWriteMapCache = false;
 
+    /**
+     * HTTP status code to use for the response.
+     */
+    protected $statusCode = 200;
+
     public function __construct(){
         $this->zoom = 0;
         $this->lat = 0;
@@ -112,7 +117,7 @@ Class staticMapLite extends configuredStaticMap {
             $this->height = intval($this->height);
         }
         if ($this->width > $this->maxSize || $this->height > $this->maxSize) {
-            output_error('The requested map image exceeds the maximum size.');
+            output_error('The requested map image exceeds the maximum size.', 413);
         }
 
         // markers parameter
@@ -298,7 +303,7 @@ Class staticMapLite extends configuredStaticMap {
         $yTiles = $endY - $startY + 1;
         if ($xTiles * $yTiles > $this->maxTileCount && $this->maxTileCount > 0) {
             output_error('The map you requested covers too much tiles. A map'
-                . ' must only cover ' . $this->maxTileCount . ' tiles.');
+                . ' must only cover ' . $this->maxTileCount . ' tiles.', 413);
         }
 
         for($x=$startX; $x<=$endX; $x++){
@@ -310,7 +315,7 @@ Class staticMapLite extends configuredStaticMap {
                     $tileImage = imagecreatefromstring($tileData);
                 } catch (Exception $ex) {
                     error_log('Tile request exception: ' . $ex->getMessage());
-                    output_error('Failed to build your map image. Do you use the correct API key? Please email info@geofabrik.de if this error persists.');
+                    output_error('Failed to build your map image. Do you use the correct API key? Please email info@geofabrik.de if this error persists.', $this->statusCode);
                 }
                 $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
                 $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
@@ -522,6 +527,7 @@ Class staticMapLite extends configuredStaticMap {
         }
         $statusCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         if ($statusCode != 200 && $statusCode != 304) {
+            $this->statusCode = $statusCode;
             curl_close($ch);
             throw new Exception('Error: HTTP status code ' . $statusCode . ' returned for tile request ' . $url);
         }
