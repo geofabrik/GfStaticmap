@@ -288,6 +288,10 @@ Class staticMapLite extends configuredStaticMap {
      */
     public function createBaseMap(){
         $this->image = imagecreatetruecolor($this->width, $this->height);
+        // Allow to leave the image partially transparent if it exceeds the Web Mercator
+        // definition area towards north/south.
+        imagealphablending($this->image, FALSE);
+        imagesavealpha($this->image, TRUE);
         $startX = floor($this->centerX-($this->width/$this->tileSize)/2);
         $startY = floor($this->centerY-($this->height/$this->tileSize)/2);
         $endX = ceil($this->centerX+($this->width/$this->tileSize)/2);
@@ -306,10 +310,21 @@ Class staticMapLite extends configuredStaticMap {
                 . ' must only cover ' . $this->maxTileCount . ' tiles.', 413);
         }
 
+        $added_tile = false;
         for($x=$startX; $x<=$endX; $x++){
+            // normalise x index
+            $xNorm = $x % (2 ** $this->zoom);
             for($y=$startY; $y<=$endY; $y++){
+                $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
+                $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
+                // skip this tile if it is too far in the north or south
+                if ($y < 0 || $y >= (2 ** $this->zoom)) {
+                    // Make the area transparent.
+                    imagefilledrectangle($this->image, $destX, $destY, $destX + $this->tileSize, $destY + $this->tileSize, 0xff000000);
+                    continue;
+                }
                 $url = str_replace(array('{P}', '{Z}','{X}','{Y}'),array($this->apiKey, $this->zoom,
-                    $x, $y), $this->tileSrcUrl);
+                    $xNorm, $y), $this->tileSrcUrl);
                 try {
                     $tileData = $this->fetchTile($url);
                     $tileImage = imagecreatefromstring($tileData);
@@ -317,11 +332,17 @@ Class staticMapLite extends configuredStaticMap {
                     error_log('Tile request exception: ' . $ex->getMessage());
                     output_error('Failed to build your map image. Do you use the correct API key? Please email info@geofabrik.de if this error persists.', $this->statusCode);
                 }
-                $destX = ($x-$startX)*$this->tileSize+$this->offsetX;
-                $destY = ($y-$startY)*$this->tileSize+$this->offsetY;
                 imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize,
-                    $this->tileSize); }
+                    $this->tileSize);
+                $added_tile = true;
+            }
         }
+        if (!$added_tile) {
+            error_log('Background map composition error: No tiles found within the requested bounding box.');
+            output_error('Failed to build your map image. No tiles of the background map found within the requested bounding box. Please email info@geofabrik.de if you sure that your map request was right.');
+        }
+        // Enable alpha blending now because we want to add the attribution
+        imagealphablending($this->image, TRUE);
     }
 
     /**
