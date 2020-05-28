@@ -106,9 +106,13 @@ Class staticMapLite extends configuredStaticMap {
         if($this->zoom>18)$this->zoom = 18;
 
         // get lat and lon from GET paramter
-        list($this->lat,$this->lon) = explode(',',$_GET['center']);
-        $this->lat = floatval($this->lat);
-        $this->lon = floatval($this->lon);
+        if ($_GET['center']) {
+            list($this->lat,$this->lon) = explode(',',$_GET['center']);
+            $this->lat = floatval($this->lat);
+            $this->lon = floatval($this->lon);
+        } else {
+            output_error('Parameter \'center\' is missing.');
+        }
 
         // get width and height from GET paramters
         if($_GET['size']){
