@@ -18,7 +18,7 @@
  * limitations under the License.
  *
  * @author Gerhard Koch <gerhard.koch AT ymail.com>
- */ 
+ */
 
 /*error_reporting(0);
 ini_set('display_errors','off');
@@ -240,9 +240,9 @@ Class staticMapLite extends configuredStaticMap {
         }
         if(array_key_exists($this->maptype, $this->tileSources)) {
             $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
-	    $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
+            $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
             // If useTileCache is set for this source, overwrite global setting.
-	    if (array_key_exists('useTileCache', $this->tileSources[$this->maptype])) {
+            if (array_key_exists('useTileCache', $this->tileSources[$this->maptype])) {
                 $this->useTileCache = $this->tileSources[$this->maptype]['useTileCache'];
             }
         } else {
@@ -482,7 +482,7 @@ Class staticMapLite extends configuredStaticMap {
      *
      * @return MD5 hash of the serialized parameters
      */
-    public function serializeParams(){		
+    public function serializeParams(){
         return join("&",array($this->zoom, $this->lat, $this->lon, $this->width, $this->height,
             serialize($this->markers), $this->maptype, $this->getApiKey()));
     }
@@ -532,9 +532,9 @@ Class staticMapLite extends configuredStaticMap {
      */
     public function fetchTile($url){
         if($this->useTileCache && ($cached = $this->checkTileCache($url))) return $cached;
-        $ch = curl_init(); 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-        curl_setopt($ch, CURLOPT_TIMEOUT, 300); 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300);
         curl_setopt($ch, CURLOPT_USERAGENT, "staticmaps.php");
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
@@ -556,7 +556,7 @@ Class staticMapLite extends configuredStaticMap {
             curl_close($ch);
             throw new Exception('Error: HTTP status code ' . $statusCode . ' returned for tile request ' . $url);
         }
-        curl_close($ch); 
+        curl_close($ch);
         return $tile;
     }
 
@@ -592,7 +592,7 @@ Class staticMapLite extends configuredStaticMap {
     }
 
     public function makeMap(){
-        $this->initCoords();		
+        $this->initCoords();
         $this->createBaseMap();
         if (count($this->lines)) {
             $this->placeLines();
@@ -608,8 +608,8 @@ Class staticMapLite extends configuredStaticMap {
             if(!$this->checkMapCache()){
                 // map is not in cache, needs to be built
                 $this->makeMap();
-                $this->sendHeader();	
-                if (!$this->doNotWriteMapCache) 
+                $this->sendHeader();
+                if (!$this->doNotWriteMapCache)
                 {
                     $this->mkdir_recursive(dirname($this->mapCacheIDToFilename()),0777);
                     imagepng($this->image,$this->mapCacheIDToFilename(),9);
@@ -617,19 +617,19 @@ Class staticMapLite extends configuredStaticMap {
                 if(file_exists($this->mapCacheIDToFilename())){
                     return file_get_contents($this->mapCacheIDToFilename());
                 } else {
-                    imagepng($this->image);		
+                    imagepng($this->image);
                 }
             } else {
                 // map is in cache
-                $this->sendHeader();	
+                $this->sendHeader();
                 return file_get_contents($this->mapCacheIDToFilename());
             }
 
         } else {
         // no cache, make map, send headers and deliver png
             $this->makeMap();
-            $this->sendHeader();	
-            return imagepng($this->image);		
+            $this->sendHeader();
+            return imagepng($this->image);
 
         }
     }
