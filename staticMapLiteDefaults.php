@@ -183,5 +183,7 @@ Class staticMapLiteDefaults {
     protected $maxTileCount = 9;
 
     protected $maxSize = 2048 * 2048;
+
+    protected $tileSources = array();
 }
 ?>

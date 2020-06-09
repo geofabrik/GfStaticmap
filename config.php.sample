@@ -29,8 +29,19 @@ Class configuredStaticMap extends staticMapLiteDefaults {
     /**
      * Available map tile sources.
      *
+     * Define which map tile sources can be selected by the users using the
+     * `maptype` parameter. Requests without a `maptype` value, will use the
+     * source called `default`.
+     *
      * The parameters `{X}`, `{Y}` and `{Z}` must be used in the URL
      * and represent the X, Y and Z index of the map tiles.
+     *
+     * If a map tile source needs an API key and your clients provide it using
+     * the `api_key` URL parameter, you can forward it using the `{P}` placeholder.
+     * For example, if a user reuqests a map with
+     * http://staticmap.example.com/maptype=print150&center=9,49&zoom=12&api_key=abcdef123,
+     * map tiles will be fetched from http://tile.example.com/retina/abcdef123/12/{X}/{Y}.png
+     * in the example given below.
      *
      * Following parameters are optional and only have to be set if the tile
      * server needs them:
@@ -40,10 +51,11 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      * The method configuredStaticMap->getApiKey() extracts the API key from
      * the URL (see below).
      */
-//    protected $tileSources = array(
-//        'nicemap' => array('url' => 'https://tile.nice-highres-mapprovider.com/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512, 'useTileCache' => false),
-//        'cheapmapprovider' => array('url' => 'http://tile.freeosmmaps.de/{Z}/{X}/{Y}.png', 'tileSize' => 256)
-//    );
+    protected $tileSources = array(
+        'default' => array('url' => 'http://tile.example.com/standard/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 256, 'useTileCache' => true),
+        'print150' => array('url' => 'http://tile.example.com/retina/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 512, 'useTileCache' => true),
+        'print' => array('url' => 'http://tile.example.com/printtiles/{P}/{Z}/{X}/{Y}.png', 'tileSize' => 1024, 'useTileCache' => true)
+    );
 
     /**
      * Method which returns the API key supplied by the user which should be
@@ -65,6 +77,16 @@ Class configuredStaticMap extends staticMapLiteDefaults {
      * Available markers.
      *
      * Changing $markerLookup will overwrite the default entries.
+     *
+     * The names of the markers must contain a slash. The part before the
+     * slash must match the tile sources defined in `$tileSources`. The
+     * part after the slash is the name of the marker used in the URL
+     * paramaters. If you define the tile sources 'default' and 'print150',
+     * `$markerLookup` needs to define all markers for both tile sources. FOr
+     * example, in order to support the marker called 'marker' for all three
+     * tile sources, you have to defined 'default/marker', 'print150/marker'
+     * and 'print/marker'. This allows you to define PNG images of different
+     * sizes for different resolutions.
      *
      * Properties:
      *
