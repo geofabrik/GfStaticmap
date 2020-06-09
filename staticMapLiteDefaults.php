@@ -185,5 +185,7 @@ Class staticMapLiteDefaults {
     protected $maxSize = 2048 * 2048;
 
     protected $tileSources = array();
+
+    protected $tileFetchFailureMessage = 'Failed to build your map image because downloading the tiles from the tile server failed. Please check if the tile server serves the tiles as expected and contact the administrator of this service if this error persists.';
 }
 ?>

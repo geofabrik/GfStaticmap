@@ -121,7 +121,7 @@ Class staticMapLite extends configuredStaticMap {
             $this->height = intval($this->height);
         }
         if ($this->width > $this->maxSize || $this->height > $this->maxSize) {
-            output_error('The requested map image exceeds the maximum size.', 413);
+            output_error('The requested map image exceeds the maximum size of ' . $this->maxSize . ' pixels for map images.', 413);
         }
 
         // markers parameter
@@ -238,6 +238,9 @@ Class staticMapLite extends configuredStaticMap {
         if(array_key_exists('maptype', $_GET)) {
             $this->maptype = $_GET['maptype'];
         }
+        if (count($this->tileSources) == 0) {
+            output_error('No map sources are defined, a map could not be rendered for you. Please contact the administrator of this service.');
+        }
         if(array_key_exists($this->maptype, $this->tileSources)) {
             $this->tileSrcUrl = $this->tileSources[$this->maptype]['url'];
             $this->tileSize = $this->tileSources[$this->maptype]['tileSize'];
@@ -278,7 +281,6 @@ Class staticMapLite extends configuredStaticMap {
         // parse API key
         $this->apiKey = $this->getApiKey();
     }
-
 
     public function initCoords(){
         $this->centerX = lonToTile($this->lon, ($this->zoom));
@@ -334,7 +336,7 @@ Class staticMapLite extends configuredStaticMap {
                     $tileImage = imagecreatefromstring($tileData);
                 } catch (Exception $ex) {
                     error_log('Tile request exception: ' . $ex->getMessage());
-                    output_error('Failed to build your map image. Do you use the correct API key? Please email info@geofabrik.de if this error persists.', $this->statusCode);
+                    output_error($this->tileFetchFailureMessage, $this->statusCode);
                 }
                 imagecopy($this->image, $tileImage, $destX, $destY, 0, 0, $this->tileSize,
                     $this->tileSize);
@@ -343,7 +345,7 @@ Class staticMapLite extends configuredStaticMap {
         }
         if (!$added_tile) {
             error_log('Background map composition error: No tiles found within the requested bounding box.');
-            output_error('Failed to build your map image. No tiles of the background map found within the requested bounding box. Please email info@geofabrik.de if you sure that your map request was right.');
+            output_error('Failed to build your map image. No tiles of the background map found within the requested bounding box.');
         }
         // Enable alpha blending now because we want to add the attribution
         imagealphablending($this->image, TRUE);
