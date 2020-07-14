@@ -63,6 +63,10 @@ Class Color {
         return imagecolorallocatealpha($image, $this->red, $this->green, $this->blue, $alphaGD);
     }
 
+    public function allocateForFontNoAlpha($image) {
+        return imagecolorexact($image, $this->red, $this->green, $this->blue);
+    }
+
     public function isTransparent() {
         return ($this->alpha == 0);
     }

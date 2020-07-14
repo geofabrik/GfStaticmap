@@ -407,7 +407,7 @@ Class staticMapLite extends configuredStaticMap {
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
-            $fontColor = $marker->fontColor->allocate($this->image);
+            $fontColor = $marker->fontColor->allocateForFontNoAlpha($this->image);
             imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2,
                 $destY + $mlu['texty'], $fontColor, $font, $marker->label); };
     }
@@ -425,11 +425,18 @@ Class staticMapLite extends configuredStaticMap {
                 imagefilledpolygon($this->image, $gdPArray, $numPoints,
                     $line->fillColor->allocate($this->image));
             }
+        }
+        foreach($this->lines as $line) {
             for ($i = 0; $i < $line->length() - 1; $i++) {
                 imagesetthickness($this->image, $line->width);
-                imageline($this->image, $gdPArray[$i * 2], $gdPArray[$i * 2 + 1],
-                    $gdPArray[$i * 2 + 2], $gdPArray[$i * 2 + 3],
-                    $line->lineColor->allocate($this->image));
+                imageline(
+                    $this->image,
+                    $line->at($i)->x_on_map($this->width, $this->centerX, $this->tileSize, $this->zoom),
+                    $line->at($i)->y_on_map($this->height, $this->centerY, $this->tileSize, $this->zoom),
+                    $line->at($i + 1)->x_on_map($this->width, $this->centerX, $this->tileSize, $this->zoom),
+                    $line->at($i + 1)->y_on_map($this->height, $this->centerY, $this->tileSize, $this->zoom),
+                    $line->lineColor->allocate($this->image)
+                );
             }
         }
     }

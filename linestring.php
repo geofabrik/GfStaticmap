@@ -21,6 +21,14 @@ class Point {
         $this->x = $x;
         $this->y = $y;
     }
+
+    public function x_on_map($width, $centerX, $tileSize, $zoom) {
+        return floor(($width/2) - $tileSize * ($centerX - lonToTile($this->x, $zoom)));
+    }
+
+    public function y_on_map($height, $centerY, $tileSize, $zoom) {
+        return floor(($height/2) - $tileSize * ($centerY - latToTile($this->y, $zoom)));
+    }
 }
 
 class LineString {
@@ -54,13 +62,13 @@ class LineString {
 
     public function gdPointsArray($width, $height, $centerX, $centerY, $zoom, $tileSize) {
         $gdPArray = array();
-        for ($i = 0; $i < count($this->points); $i++) {
-            $x1 = floor(($width/2) - $tileSize * ($centerX - lonToTile($this->at($i)->x, $zoom)));
-            $y1 = floor(($height/2) - $tileSize * ($centerY - latToTile($this->at($i)->y, $zoom)));
+        for ($i = 0; $i < count($this->points) - 1; $i++) {
+            $x1 = $this->at($i)->x_on_map($width, $centerX, $tileSize, $zoom);
+            $y1 = $this->at($i)->y_on_map($height, $centerY, $tileSize, $zoom);
             $gdPArray[] = $x1;
             $gdPArray[] = $y1;
         }
-        return array($gdPArray, $this->length());
+        return array($gdPArray, $this->length() - 1);
     }
 }
 
