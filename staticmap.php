@@ -123,7 +123,12 @@ Class staticMapLite extends configuredStaticMap {
 
         // get zoom from GET paramter
         if (isset($_GET['zoom'])) {
-            $this->zoom = intval($_GET['zoom']);
+            $zoom = $_GET['zoom'];
+            if (ctype_digit($zoom)) {
+                $this->zoom = intval($_GET['zoom']);
+            } else {
+                output_error('zoom needs to be a positive integer');
+            }
         } else if (!$this->fitToContentRequested) {
             output_error('Please provide any of the following parameters: \'zoom\', \'path\', \'markers\'.');
         }
@@ -131,18 +136,27 @@ Class staticMapLite extends configuredStaticMap {
 
         // get lat and lon from GET paramter
         if (isset($_GET['center'])) {
-            list($this->lat,$this->lon) = explode(',',$_GET['center']);
-            $this->lat = floatval($this->lat);
-            $this->lon = floatval($this->lon);
+            $center = explode(',', $_GET['center']);
+            if (count($center) != 2 || !is_numeric($center[0]) || !is_numeric($center[1])) {
+                output_error('The center parameter must have the following form: latitude,longitude. Both parts have to be floats.');
+            }
+            $this->lat = floatval($center[0]);
+            $this->lon = floatval($center[1]);
         } else if (!$this->fitToContentRequested) {
             output_error('Parameter \'center\' is missing.');
         }
 
         // get width and height from GET paramters
         if (isset($_GET['size'])) {
-            list($this->width, $this->height) = explode('x',$_GET['size']);
-            $this->width = intval($this->width);
-            $this->height = intval($this->height);
+            $size = explode('x', $_GET['size']);
+            if (count($size) != 2 || !ctype_digit($size[0]) || !ctype_digit($size[1])) {
+                output_error('The size paramter must have the following form: <integer>x<integer>. The first integer is the width, the second the height in pixel.');
+            }
+            $this->width = intval($size[0]);
+            $this->height = intval($size[1]);
+            if ($this->width <= 0 || $this->height <= 0) {
+                output_error('Width and height must be positive integers.');
+            }
         } else if (!$this->fitToContentRequested) {
             $this->width = 500;
             $this->height = 350;
