@@ -2,11 +2,18 @@
 
 ## API Parameters
 
-### Mandatory Parameters
+### Parameters for image size, location and zoom level
+
+Mandatory parameter:
+
+* `size`: `<width>x<height>`, width and height in pixel, both integer
+
+The following parameters are mandatory if neither `path` nor `markers` is provided. If `center` and
+`zoom` are not provided, GfStaticMap will use the largest possible zoom level (but not larger than 19) which makes
+all content fit onto the map.
 
 * `center`: `<latitude>,<longitude>`, center of the map image in geographical coordinates, e.g. `40.714728,-73.998672`
 * `zoom`: `<zoom level>`, zoom level (`0` to `18`), integer
-* `size`: `<width>x<height>`, width and height in pixel, both integer
 
 ### Optional Parameters Controlling the Overall Appearance of the Map
 

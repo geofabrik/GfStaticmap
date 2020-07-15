@@ -28,12 +28,16 @@ require 'config.php';
 require 'marker.php';
 require 'linestring.php';
 
+
 /**
  * implementation of the staticMap
  */
 Class staticMapLite extends configuredStaticMap {
+    /** Whether fit_to_content=1 was set */
+    protected $fitToContentRequested = false;
+
     /** zoom level of the map */
-    protected $zoom;
+    protected $zoom = -1;
 
     /** latitude of the center of the map */
     protected $lat;
@@ -42,10 +46,10 @@ Class staticMapLite extends configuredStaticMap {
     protected $lon;
 
     /** width of the map */
-    protected $width;
+    protected $width = 0;
 
     /** height of the map */
-    protected $height;
+    protected $height = 0;
 
     /** markers to be added to the map */
     protected $markers;
@@ -84,12 +88,26 @@ Class staticMapLite extends configuredStaticMap {
      */
     protected $statusCode = 200;
 
+    /** minimum longitude of things to draw on the map */
+    private $minLon = 180;
+    /** maximum longitude of things to draw on the map */
+    private $maxLon = -180;
+    /** minimum latitude of things to draw on the map */
+    private $minLat = 90;
+    /** maximum latitude of things to draw on the map */
+    private $maxLat = -90;
+    /** buffer required for markers on the left side */
+    private $markerBufferLeft = 0;
+    /** buffer required for markers on the right side */
+    private $markerBufferRight = 0;
+    /** buffer required for markers on the bottom side */
+    private $markerBufferBottom = 0;
+    /** buffer required for markers on the top side */
+    private $markerBufferTop = 0;
+
     public function __construct(){
-        $this->zoom = 0;
-        $this->lat = 0;
-        $this->lon = 0;
-        $this->width = 500;
-        $this->height = 350;
+        $this->width = $this->maxSize;
+        $this->height = $this->maxSize;
         $this->markers = array();
         $this->lines = array();
         $this->maptype = $this->tileDefaultSrc;
@@ -101,24 +119,35 @@ Class staticMapLite extends configuredStaticMap {
     public function parseParams(){
         global $_GET;
 
+        $this->fitToContentRequested = (!array_key_exists('zoom', $_GET) && !array_key_exists('center', $_GET));
+
         // get zoom from GET paramter
-        $this->zoom = $_GET['zoom']?intval($_GET['zoom']):0;
-        if($this->zoom>18)$this->zoom = 18;
+        if (isset($_GET['zoom'])) {
+            $this->zoom = intval($_GET['zoom']);
+        } else if (!$this->fitToContentRequested) {
+            output_error('Please provide any of the following parameters: \'zoom\', \'path\', \'markers\'.');
+        }
+        if ($this->zoom > 19) $this->zoom = 19;
 
         // get lat and lon from GET paramter
-        if ($_GET['center']) {
+        if (isset($_GET['center'])) {
             list($this->lat,$this->lon) = explode(',',$_GET['center']);
             $this->lat = floatval($this->lat);
             $this->lon = floatval($this->lon);
-        } else {
+        } else if (!$this->fitToContentRequested) {
             output_error('Parameter \'center\' is missing.');
         }
 
         // get width and height from GET paramters
-        if($_GET['size']){
+        if (isset($_GET['size'])) {
             list($this->width, $this->height) = explode('x',$_GET['size']);
             $this->width = intval($this->width);
             $this->height = intval($this->height);
+        } else if (!$this->fitToContentRequested) {
+            $this->width = 500;
+            $this->height = 350;
+        } else {
+            output_error('The size parameter is missing.');
         }
         if ($this->width > $this->maxSize || $this->height > $this->maxSize) {
             output_error('The requested map image exceeds the maximum size of ' . $this->maxSize . ' pixels for map images.', 413);
@@ -252,6 +281,14 @@ Class staticMapLite extends configuredStaticMap {
             output_error('Unknown maptype ' . $this->maptype);
         }
 
+        if (count($this->markers) === 0 && count($this->lines) === 0 && $this->fitToContentRequested) {
+            output_error('The parameters size and zoom need to be set if neither path nor markers is provided.');
+        }
+
+        if ($this->fitToContentRequested) {
+            $this->fitToContent();
+        }
+
         // mapcache parameter
         if(isset($_GET['nocache']) && !$this->ignoreNoCacheProperty){
             $this->doNotReadMapCache = true;
@@ -280,6 +317,71 @@ Class staticMapLite extends configuredStaticMap {
 
         // parse API key
         $this->apiKey = $this->getApiKey();
+    }
+
+    /**
+     * Calculate width, height and zoom level in order that all markers, lines and polygons fit onto the map.
+     */
+    public function fitToContent() {
+        if (count($this->markers) == 0 && count($this->lines) == 0) {
+            output_error('Failed to fit map to content because the map has no markers, lines or polygons');
+        }
+        // Get bounding box of all markers
+        foreach ($this->markers as $marker) {
+            $this->updateBounds($marker->lon, $marker->lat);
+            // Get width of marker images
+            $markerLookupResult = $this->markerLookup[$this->maptype.'/'.$marker->image];
+            $markerImg = imagecreatefrompng($this->getMarkerPath($markerLookupResult['filename']));
+            if (!$markerImg) {
+                output_error('Marker type \'' . $marker->image . '\' is not available on this instance of GfStaticMap.');
+            }
+            $markerWidth = imagesx($markerImg);
+            $markerHeight = imagesy($markerImg);
+            $hotX = $markerLookupResult['hotx'];
+            $hotY = $markerLookupResult['hoty'];
+            $this->markerBufferLeft = max($this->markerBufferLeft, $hotX);
+            $this->markerBufferRight = max($this->markerBufferRight, $markerWidth - $hotY);
+            $this->markerBufferBottom = max($this->markerBufferBottom, $hotY);
+            $this->markerBufferTop = max($this->markerBufferTop, $markerHeight - $hotY);
+        }
+        foreach ($this->lines as $line) {
+            for ($i = 0; $i < $line->length(); $i++) {
+                $this->updateBounds($line->at($i)->x, $line->at($i)->y);
+                $this->markerBufferLeft = max($this->markerBufferLeft, $line->width);
+                $this->markerBufferRight = max($this->markerBufferRight, $line->width);
+                $this->markerBufferBottom = max($this->markerBufferBottom, $line->width);
+                $this->markerBufferTop = max($this->markerBufferTop, $line->width);
+            }
+        }
+        $this->lon = ($this->maxLon - $this->minLon) / 2 + $this->minLon;
+        $this->lat = ($this->maxLat - $this->minLat) / 2 + $this->minLat;
+        // get maximum zoom level for given maximum map size
+        $this->zoom = 19;
+        for (; $this->zoom >= 0; $this->zoom--) {
+            $minX = lonToTile($this->minLon, $this->zoom); // - $this->markerBufferLeft / $this->tileSize;
+            $minY = latToTile($this->maxLat, $this->zoom); // - $this->markerBufferTop / $this->tileSize;
+            $maxX = lonToTile($this->maxLon, $this->zoom); // + $this->markerBufferRight / $this->tileSize;
+            $maxY = latToTile($this->minLat, $this->zoom); // + $this->markerBufferBottom / $this->tileSize;
+            if ((($maxX - $minX) * $this->tileSize <= $this->width)
+                && (($maxY - $minY) * $this->tileSize <= $this->height)) {
+                break;
+            }
+        }
+    }
+
+    protected function updateBounds($lon, $lat) {
+        if ($lon < $this->minLon) {
+            $this->minLon = $lon;
+        }
+        if ($lon > $this->maxLon) {
+            $this->maxLon = $lon;
+        }
+        if ($lat < $this->minLat) {
+            $this->minLat = $lat;
+        }
+        if ($lat > $this->maxLat) {
+            $this->maxLat = $lat;
+        }
     }
 
     public function initCoords(){
@@ -386,6 +488,10 @@ Class staticMapLite extends configuredStaticMap {
             imagesy($markerImg)); return array($destX, $destY);
     }
 
+    protected function getMarkerPath($filename) {
+        return $this->markerBaseDir. '/' . $filename;
+    }
+
     /**
      * Render the markers on the map.
      */
@@ -395,9 +501,12 @@ Class staticMapLite extends configuredStaticMap {
             $markerLon = $marker->lon;
             $markerImage = $marker->image;
             // retrieve the marker details from the array of the available marker icons
-            $mlu = $this->markerLookup[$this->maptype.'/'.$marker->image];
-            $markerFilename = $this->markerBaseDir.'/'.$mlu['filename'];
-            $markerMaskname = $this->markerBaseDir.'/'.$mlu['maskname'];
+            $mlu = $this->markerLookup[$this->maptype.'/'.$marker->image] ?? FALSE;
+            if (!$mlu) {
+                output_error('Marker type \'' . $marker->image . '\' is not available on this instance of GfStaticMap.');
+            }
+            $markerFilename = $this->getMarkerPath($mlu['filename']);
+            $markerMaskname = $this->getMarkerPath($mlu['maskname']);
             list($destX, $destY) = $this->addMarkerOrMask($markerMaskname, $mlu, true, $marker);
             $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
