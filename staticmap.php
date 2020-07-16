@@ -570,7 +570,7 @@ Class staticMapLite extends configuredStaticMap {
      * @return the destination path
      */
     public function tileUrlToFilename($url){
-        return $this->tileCacheBaseDir."/".str_replace(array('http://'),'',$url);
+        return $this->tileCacheBaseDir . "/" . str_replace(array('http://', 'https://'), '', $url);
     }
 
     /**
