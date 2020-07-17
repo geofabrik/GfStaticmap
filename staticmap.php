@@ -525,7 +525,8 @@ Class staticMapLite extends configuredStaticMap {
             $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
             // determine label width
-            $font = $this->fontBaseDir.'/'.$marker->font;
+            $font = $marker->font != null ? $marker->font : $mlu['font'];
+            $font = $this->fontBaseDir . '/' . $font;
             $size = imagettfbbox($mlu['textsize'], 0, $font, $marker->label);
             $width = $size[4] - $size[0];
 

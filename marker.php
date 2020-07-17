@@ -26,14 +26,18 @@ Class Marker {
     public $label;
     public $font;
 
-    public function __construct($lat, $lon, $image, $color, $fontColor, $label, $font = 'LiberationSans-Bold') {
+    public function __construct($lat, $lon, $image, $color, $fontColor, $label, $font = null) {
         $this->lat = $lat;
         $this->lon = $lon;
         $this->image = $image;
         $this->color = $color;
         $this->fontColor = $fontColor;
         $this->label = $label;
-        $this->font = $font . '.ttf';
+        if ($font != null) {
+            $this->font = $font . '.ttf';
+        } else {
+            $this->font = null;
+        }
     }
 }
 ?>
