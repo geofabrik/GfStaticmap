@@ -117,15 +117,19 @@ Class staticMapLite extends configuredStaticMap {
      * Parse parameters (query string)
      */
     public function parseParams(){
-        global $_GET;
+        global $_REQUEST;
+        $parameters = $_REQUEST;
+        if ($_SERVER['REQUEST_METHOD'] != 'GET' && $_SERVER['REQUEST_METHOD'] != 'POST') {
+            output_error('GET and POST requests are supported only.', 405);
+        }
 
-        $this->fitToContentRequested = (!array_key_exists('zoom', $_GET) && !array_key_exists('center', $_GET));
+        $this->fitToContentRequested = (!array_key_exists('zoom', $_REQUEST) && !array_key_exists('center', $_REQUEST));
 
         // get zoom from GET paramter
-        if (isset($_GET['zoom'])) {
-            $zoom = $_GET['zoom'];
+        if (isset($parameters['zoom'])) {
+            $zoom = $parameters['zoom'];
             if (ctype_digit($zoom)) {
-                $this->zoom = intval($_GET['zoom']);
+                $this->zoom = intval($parameters['zoom']);
             } else {
                 output_error('zoom needs to be a positive integer');
             }
@@ -135,8 +139,8 @@ Class staticMapLite extends configuredStaticMap {
         if ($this->zoom > 19) $this->zoom = 19;
 
         // get lat and lon from GET paramter
-        if (isset($_GET['center'])) {
-            $center = explode(',', $_GET['center']);
+        if (isset($parameters['center'])) {
+            $center = explode(',', $parameters['center']);
             if (count($center) != 2 || !is_numeric($center[0]) || !is_numeric($center[1])) {
                 output_error('The center parameter must have the following form: latitude,longitude. Both parts have to be floats.');
             }
@@ -147,8 +151,8 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // get width and height from GET paramters
-        if (isset($_GET['size'])) {
-            $size = explode('x', $_GET['size']);
+        if (isset($parameters['size'])) {
+            $size = explode('x', $parameters['size']);
             if (count($size) != 2 || !ctype_digit($size[0]) || !ctype_digit($size[1])) {
                 output_error('The size paramter must have the following form: <integer>x<integer>. The first integer is the width, the second the height in pixel.');
             }
@@ -168,10 +172,10 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // markers parameter
-        if(isset($_GET['markers'])){
+        if(isset($parameters['markers'])){
             $markerCount = 1;
             // split up into markers
-            $markers = preg_split('/%7C|\|/',$_GET['markers']);
+            $markers = preg_split('/%7C|\|/',$parameters['markers']);
             foreach($markers as $marker){
                 // build array of keys and values
                 $params = array();
@@ -246,9 +250,9 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // path parameter
-        if (isset($_GET['path'])) {
+        if (isset($parameters['path'])) {
             // split up into single paths
-            $paths = preg_split('/%7C|\|/', $_GET['path']);
+            $paths = preg_split('/%7C|\|/', $parameters['path']);
             foreach ($paths as $path) {
                 // split up by , into key:value pairs
                 $kvPairs = explode(',', $path);
@@ -278,8 +282,8 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // maptype parameter
-        if(array_key_exists('maptype', $_GET)) {
-            $this->maptype = $_GET['maptype'];
+        if(array_key_exists('maptype', $parameters)) {
+            $this->maptype = $parameters['maptype'];
         }
         if (count($this->tileSources) == 0) {
             output_error('No map sources are defined, a map could not be rendered for you. Please contact the administrator of this service.');
@@ -304,22 +308,22 @@ Class staticMapLite extends configuredStaticMap {
         }
 
         // mapcache parameter
-        if(isset($_GET['nocache']) && !$this->ignoreNoCacheProperty){
+        if(isset($parameters['nocache']) && !$this->ignoreNoCacheProperty){
             $this->doNotReadMapCache = true;
         }
 
         // attribution parameter
-        if(isset($_GET['attribution'])) {
-           if ($_GET['attribution'] == 'false'){
+        if(isset($parameters['attribution'])) {
+           if ($parameters['attribution'] == 'false'){
                $this->attribution = false;
-           } else if ($_GET['attribution'] != 'true') {
+           } else if ($parameters['attribution'] != 'true') {
                output_error('Illegal option for parameter \'attribution\'');
            }
         }
 
         // attribution-font parameter
-        if (isset($_GET['attribution-font'])) {
-            $this->attributionFont = $_GET['attribution-font'];
+        if (isset($parameters['attribution-font'])) {
+            $this->attributionFont = $parameters['attribution-font'];
             if (strlen($this->attributionFont) == 0) {
                 output_error('Missing font name for attribution text.');
             }
