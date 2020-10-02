@@ -621,7 +621,7 @@ Class staticMapLite extends configuredStaticMap {
      */
     public function serializeParams(){
         return join("&",array($this->zoom, $this->lat, $this->lon, $this->width, $this->height,
-            serialize($this->markers), $this->maptype, $this->getApiKey()));
+            serialize($this->markers), serialize($this->lines), $this->maptype, $this->getApiKey()));
     }
 
     /**
