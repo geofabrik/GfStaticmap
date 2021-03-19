@@ -637,11 +637,11 @@ Class staticMapLite extends configuredStaticMap {
         foreach($this->arcs as $arc) {
             $centerX = $arc->center->x_on_map($this->width, $this->centerX, $this->tileSize, $this->zoom);
             $centerY = $arc->center->y_on_map($this->height, $this->centerY, $this->tileSize, $this->zoom);
-            $radiusPx = intval($arc->radiusInPixel($this->lat, $this->zoom, $this->tileSize));
+            $diameterPx = intval($arc->radiusInPixel($this->lat, $this->zoom, $this->tileSize) * 2);
             if (!($arc->fillColor->isTransparent())) {
                 $fillColor = $arc->fillColor->allocate($this->image);
                 if ($arc->isCircle()) {
-                    imagefilledellipse($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $fillColor);
+                    imagefilledellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $fillColor);
                 } else {
                     // If start or end angle is close to 90 or 270 degree, we need to render the area of the arc around 90/270°
                     // in order to circumvent a bug in GD.
@@ -653,17 +653,17 @@ Class staticMapLite extends configuredStaticMap {
                         $trianglePatchPoints = $arc->getTrianglePoints($arc->end, false, $this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
                         imagefilledpolygon($this->image, $trianglePatchPoints, 3, $fillColor);
                     }
-                    imagefilledarc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $arc->start, $arc->end, $fillColor, IMG_ARC_PIE);
+                    imagefilledarc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $fillColor, IMG_ARC_PIE);
                 }
             }
             if ($arc->lineWidth > 0) {
                 $lineColor = $arc->lineColor->allocate($this->image);
                 imagesetthickness($this->image, $arc->lineWidth);
                 if ($arc->isCircle()) {
-                    //imageellipse($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $lineColor);
-                    imagearc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, 0, 360, $lineColor);
+                    imageellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
+                    //imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, 0, 360, $lineColor);
                 } else {
-                    imagearc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $arc->start, $arc->end, $lineColor);
+                    imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
                 }
             }
         }
