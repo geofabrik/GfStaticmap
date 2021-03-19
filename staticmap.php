@@ -643,6 +643,16 @@ Class staticMapLite extends configuredStaticMap {
                 if ($arc->isCircle()) {
                     imagefilledellipse($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $fillColor);
                 } else {
+                    // If start or end angle is close to 90 or 270 degree, we need to render the area of the arc around 90/270°
+                    // in order to circumvent a bug in GD.
+                    if (abs(90 - $arc->start) < 10 || abs(270 - $arc->start) < 10) {
+                        $trianglePatchPoints = $arc->getTrianglePoints($arc->start, true, $this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
+                        imagefilledpolygon($this->image, $trianglePatchPoints, 3, $fillColor);
+                    }
+                    if (abs(90 - $arc->end) < 10 || abs(270 - $arc->end) < 10) {
+                        $trianglePatchPoints = $arc->getTrianglePoints($arc->end, false, $this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
+                        imagefilledpolygon($this->image, $trianglePatchPoints, 3, $fillColor);
+                    }
                     imagefilledarc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $arc->start, $arc->end, $fillColor, IMG_ARC_PIE);
                 }
             }
