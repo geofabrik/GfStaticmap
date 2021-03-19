@@ -70,7 +70,7 @@ The comma-separated list must contain at least three elements, the forth element
 
 ### Lines (optional)
 
-* `path`: a pipe-separated list of paths. Each marker is a comma-separated key-value store. Keys and values are separated by colons (`:`):
+* `path`: a pipe-separated list of paths. Each path is a comma-separated key-value store. Keys and values are separated by colons (`:`):
 
 ```
 &path=<path1>|<path2>|<path3>
