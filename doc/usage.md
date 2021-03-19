@@ -89,6 +89,48 @@ Following keys are available:
 * `color`: color of the outline as RGB HEX string with 6 or 8 digits and no leading # character
 * `fillcolor`: fill color as RGB HEX string with 6 or 8 digits and no leading # character
 
+
+### Circles (optional)
+
+* `circle`: a pipe-separated list of circles. Each circle is a comma-separated key-value store. Keys and values are separated by colons (`:`):
+
+```
+&circle=<circle1>|<circle2>|<circle3>
+```
+
+Each circle is a key-value list:
+
+```
+&circle=center:(<lon1> <lat1>),color:<color>,radius:<radius>,fillcolor:<fillcolor>,width:<width>|center:(<lon1> <lat1>),color:<color>,fillcolor:<fillcolor>,radius:<radius>
+```
+
+Following keys are available:
+
+* `center`: a point `(<longitude1> <latitude1>)`. Longitude and latitude of a point are separated by a space. A point is surrounded by round brackets. This key is mandatory.
+* `radius`: radius in meter. This key is mandatory.
+* `width`: width of the line. Widths larger than 3 might look bad due to a bug in the underlying graphics software library.
+* `color`: color of the outline as RGB HEX string with 6 or 8 digits and no leading # character
+* `fillcolor`: fill color as RGB HEX string with 6 or 8 digits and no leading # character
+
+### Pies (optional)
+
+* `pie`: a pipe-separated list of pies. Each pie is a comma-separated key-value store. Keys and values are separated by colons (`:`):
+
+```
+&pie=<pie1>|<pie2>|<pie3>
+```
+
+Each pie is a key-value list:
+
+```
+&pie=center:(<lon1> <lat1>),color:<color>,radius:<radius>,from:<from>,to:<to>,fillcolor:<fillcolor>,width:<width>|center:(<lon1> <lat1>),color:<color>,fillcolor:<fillcolor>,from:<from>,to:<to>,radius:<radius>
+```
+
+You can use the same keys as for circle. In addition, the following keys are mandatory:
+
+* `from`: start angle in degree, 0° is located at the three-o'clock position, and the arc is drawn clockwise.
+* `to`: end angle in degree.
+
 ## Examples
 
 Map of Manhattan Downtown, two markers automatically labeled, filled polygon:

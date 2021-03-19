@@ -57,6 +57,9 @@ Class staticMapLite extends configuredStaticMap {
     /** lines/areas to be added to the map */
     protected $lines = array();
 
+    /** circles and pies to be added to the map */
+    protected $arcs = array();
+
     /** the map image */
     protected $image;
 
@@ -249,35 +252,10 @@ Class staticMapLite extends configuredStaticMap {
             }
         }
 
-        // path parameter
-        if (isset($parameters['path'])) {
-            // split up into single paths
-            $paths = preg_split('/%7C|\|/', $parameters['path']);
-            foreach ($paths as $path) {
-                // split up by , into key:value pairs
-                $kvPairs = explode(',', $path);
-                $params = array();
-                foreach ($kvPairs as $pair) {
-                    list($key, $value) = explode(':', $pair, 2);
-                    $params[trim($key)] = trim($value);
-                }
-                if (!isset($params['points'])) {
-                    output_error('Mandatory argument points for path is missing.');
-                }
-                $lineColor = new Color(255, 0, 0, 255);
-                if (isset($params['color'])) {
-                    $lineColor = Color::colorFromHex($params['color']);
-                }
-                $fillColor = new Color(255, 255, 0, 255);
-                if (isset($params['fillcolor'])) {
-                    $fillColor = Color::colorFromHex($params['fillcolor']);
-                }
-                $lineWidth = 3;
-                if (isset($params['width']) && is_numeric($params['width'])) {
-                    $lineWidth = intVal($params['width']);
-                }
-                $ls = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
-                array_push($this->lines, $ls);
+        // path, circles and pies parameter
+        foreach (array('path', 'circle', 'pie') as $paramName) {
+            if (isset($parameters[$paramName])) {
+                $this->parsePathCircleParam($parameters, $paramName);
             }
         }
 
@@ -299,8 +277,8 @@ Class staticMapLite extends configuredStaticMap {
             output_error('Unknown maptype ' . $this->maptype);
         }
 
-        if (count($this->markers) === 0 && count($this->lines) === 0 && $this->fitToContentRequested) {
-            output_error('The parameters size and zoom need to be set if neither path nor markers is provided.');
+        if (count($this->markers) === 0 && count($this->lines) === 0 && count($this->arcs) === 0 && $this->fitToContentRequested) {
+            output_error('The parameters size and zoom need to be set if neither path nor markers, circles or pies are provided.');
         }
 
         if ($this->fitToContentRequested) {
@@ -337,11 +315,81 @@ Class staticMapLite extends configuredStaticMap {
         $this->apiKey = $this->getApiKey();
     }
 
+    protected function parsePathCircleParam($parameters, $paramName) {
+        // split up into single paths
+        $elements = preg_split('/%7C|\|/', $parameters[$paramName]);
+        foreach ($elements as $elem) {
+            // split up by , into key:value pairs
+            $kvPairs = explode(',', $elem);
+            $params = array();
+            foreach ($kvPairs as $pair) {
+                list($key, $value) = explode(':', $pair, 2);
+                $params[trim($key)] = trim($value);
+            }
+            if ($paramName === 'paths' && !isset($params['points'])) {
+                output_error('Mandatory argument points for path is missing.');
+            }
+            if (($paramName === 'circle' || $paramName === 'pie') && !isset($params['center'])) {
+                output_error('Mandatory argument center for circle or pie is missing.');
+            }
+            if (($paramName === 'circle' || $paramName === 'pie') && !isset($params['radius'])) {
+                output_error('Mandatory argument radius for circle or pie is missing.');
+            }
+            if ($paramName === 'pie' && (!isset($params['from']) || !isset($params['to']))) {
+                output_error('Mandatory argument "from" or "to" for pie is missing.');
+            }
+            $lineColor = new Color(255, 0, 0, 255);
+            if (isset($params['color'])) {
+                $lineColor = Color::colorFromHex($params['color']);
+            }
+            $fillColor = new Color(255, 255, 0, 255);
+            if (isset($params['fillcolor'])) {
+                $fillColor = Color::colorFromHex($params['fillcolor']);
+            }
+            $lineWidth = 3;
+            if (isset($params['width']) && is_numeric($params['width'])) {
+                $lineWidth = intVal($params['width']);
+            }
+            $from = 0;
+            $to = 360;
+            if ($paramName === 'paths') {
+                $ls = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
+                array_push($this->lines, $ls);
+            } elseif ($paramName === 'circle' || $paramName === 'pie') {
+                if ($paramName === 'pie') {
+                    $start = $params['from'];
+                    $end = $params['to'];
+                    if ($start >= $end) {
+                        output_error('End angle has to be larger than start angle');
+                    }
+                    // convert angles to clockwise as preferred by libgd
+                    $from = 360 - $end;
+                    $to = ($end - $start) + $from;
+                }
+                $radius = $params['radius'];
+                if (!is_numeric($radius) || $radius <= 0) {
+                    output_error('Radius is not a number or smaller or equal than 0.');
+                }
+                $centerRaw = $params['center'];
+                if ($centerRaw[0] != '(' || $centerRaw[strlen($centerRaw) - 1] != ')') {
+                    output_error('Center coordinate specification is invalid. Its first character must be an opening round bracket, the last one must be a closing round bracket.');
+                }
+                list($lon, $lat) = explode(' ', substr($centerRaw, 1, strlen($centerRaw) - 2), 2);
+                if (is_numeric($lon) && is_numeric($lat)) {
+                    $center = new Point($lon, $lat);
+                    array_push($this->arcs, new Arc($center, $radius, $lineWidth, $lineColor, $fillColor, $from, $to));
+                } else {
+                    output_error('A center coordinate of a pie or circle is not a number.');
+                }
+            }
+        }
+    }
+
     /**
      * Calculate width, height and zoom level in order that all markers, lines and polygons fit onto the map.
      */
     public function fitToContent() {
-        if (count($this->markers) == 0 && count($this->lines) == 0) {
+        if (count($this->markers) == 0 && count($this->lines) == 0 && count($this->arcs) == 0) {
             output_error('Failed to fit map to content because the map has no markers, lines or polygons');
         }
         // Get bounding box of all markers
@@ -370,6 +418,19 @@ Class staticMapLite extends configuredStaticMap {
                 $this->markerBufferBottom = max($this->markerBufferBottom, $line->width);
                 $this->markerBufferTop = max($this->markerBufferTop, $line->width);
             }
+        }
+        $earth_radius = 6378137.0;
+        foreach ($this->arcs as $arc) {
+            // Get northern point of circle
+            $radius = $arc->radius;
+            $latNorth = (180 * $radius) / ($earth_radius * pi()) + $arc->center->y;
+            $this->updateBounds($arc->center->x, $latNorth);
+            $latSouth = $arc->center->y - (180 * $radius) / ($earth_radius * pi());
+            $this->updateBounds($arc->center->x, $latSouth);
+            $lonEast = $arc->center->x + ($radius * 180) / (pi() * $earth_radius * cos(deg2rad($arc->center->y)));
+            $lonWest = $arc->center->x - ($lonEast - $arc->center->x);
+            $this->updateBounds($lonWest, $arc->center->y);
+            $this->updateBounds($lonEast, $arc->center->y);
         }
         $this->lon = ($this->maxLon - $this->minLon) / 2 + $this->minLon;
         $this->lat = ($this->maxLat - $this->minLat) / 2 + $this->minLat;
@@ -570,6 +631,35 @@ Class staticMapLite extends configuredStaticMap {
     }
 
     /**
+     * Render the circles and pies on the map.
+     */
+    public function placeArcs() {
+        foreach($this->arcs as $arc) {
+            $centerX = $arc->center->x_on_map($this->width, $this->centerX, $this->tileSize, $this->zoom);
+            $centerY = $arc->center->y_on_map($this->height, $this->centerY, $this->tileSize, $this->zoom);
+            $radiusPx = intval($arc->radiusInPixel($this->lat, $this->zoom, $this->tileSize));
+            if (!($arc->fillColor->isTransparent())) {
+                $fillColor = $arc->fillColor->allocate($this->image);
+                if ($arc->isCircle()) {
+                    imagefilledellipse($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $fillColor);
+                } else {
+                    imagefilledarc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $arc->start, $arc->end, $fillColor, IMG_ARC_PIE);
+                }
+            }
+            if ($arc->lineWidth > 0) {
+                $lineColor = $arc->lineColor->allocate($this->image);
+                imagesetthickness($this->image, $arc->lineWidth);
+                if ($arc->isCircle()) {
+                    //imageellipse($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $lineColor);
+                    imagearc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, 0, 360, $lineColor);
+                } else {
+                    imagearc($this->image, $centerX, $centerY, $radiusPx, $radiusPx, $arc->start, $arc->end, $lineColor);
+                }
+            }
+        }
+    }
+
+    /**
      * Build a path where to store a tile to be cached based on its URL.
      *
      * @return the destination path
@@ -621,7 +711,8 @@ Class staticMapLite extends configuredStaticMap {
      */
     public function serializeParams(){
         return join("&",array($this->zoom, $this->lat, $this->lon, $this->width, $this->height,
-            serialize($this->markers), serialize($this->lines), $this->maptype, $this->getApiKey()));
+            serialize($this->markers), serialize($this->lines), $this->maptype, $this->getApiKey(),
+            serialize($this->arcs)));
     }
 
     /**
@@ -733,6 +824,9 @@ Class staticMapLite extends configuredStaticMap {
         $this->createBaseMap();
         if (count($this->lines)) {
             $this->placeLines();
+        }
+        if (count($this->arcs)) {
+            $this->placeArcs();
         }
         if(count($this->markers))$this->placeMarkers();
         if($this->attribution) $this->copyrightNotice();

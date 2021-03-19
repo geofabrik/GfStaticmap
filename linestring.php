@@ -92,4 +92,35 @@ function buildLineString($pointList, $lineColor, $width, $fillColor) {
     }
     return $linestring;
 }
+
+class Arc {
+    public $center;
+    public $radius;
+    public $start = 0;
+    public $end = 360;
+    public $lineWidth = 3;
+    public $fillColor;
+    public $lineColor;
+
+    public function __construct($center, $radius, $width, $lineColor, $fillColor, $start=null, $end=null) {
+        $this->lineWidth = $width;
+        $this->center = $center;
+        $this->start = $start;
+        $this->end = $end;
+        $this->radius = $radius;
+        $this->lineColor = $lineColor;
+        $this->fillColor = $fillColor;
+    }
+
+    public function isCircle() {
+        return $this->start === 0 && $this->end === 360;
+    }
+
+    /**
+     * Return radius in pixel.
+     */
+    public function radiusInPixel($mapCenterLat, $zoomLevel, $tileSize) {
+        return $this->radius * pixelPerMeter($mapCenterLat, $zoomLevel, $tileSize);
+    }
+}
 ?>
