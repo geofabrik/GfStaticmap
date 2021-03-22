@@ -128,7 +128,7 @@ Each pie is a key-value list:
 
 You can use the same keys as for circle. In addition, the following keys are mandatory:
 
-* `from`: start angle in degree, 0° is located at the three-o'clock position, and the arc is drawn clockwise.
+* `from`: start angle in degree, 0° is located at the three-o'clock position, and the arc is drawn counter-clockwise.
 * `to`: end angle in degree.
 
 ## Examples
