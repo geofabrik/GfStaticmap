@@ -645,15 +645,9 @@ Class staticMapLite extends configuredStaticMap {
                 } else {
                     // If start or end angle is close to 90 or 270 degree, we need to render the area of the arc around 90/270°
                     // in order to circumvent a bug in GD.
-                    if (abs(90 - $arc->start) < 10 || abs(270 - $arc->start) < 10) {
-                        $trianglePatchPoints = $arc->getTrianglePoints($arc->start, true, $this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
-                        imagefilledpolygon($this->image, $trianglePatchPoints, 3, $fillColor);
-                    }
-                    if (abs(90 - $arc->end) < 10 || abs(270 - $arc->end) < 10) {
-                        $trianglePatchPoints = $arc->getTrianglePoints($arc->end, false, $this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
-                        imagefilledpolygon($this->image, $trianglePatchPoints, 3, $fillColor);
-                    }
-                    imagefilledarc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $fillColor, IMG_ARC_PIE);
+                    // Therefore, we draw the area of the arc as a polygon.
+                    $arcPolyPoints = $arc->getArcPoints($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
+                    imagefilledpolygon($this->image, $arcPolyPoints, count($arcPolyPoints) / 2, $fillColor);
                 }
             }
             if ($arc->lineWidth > 0) {
@@ -661,7 +655,6 @@ Class staticMapLite extends configuredStaticMap {
                 imagesetthickness($this->image, $arc->lineWidth);
                 if ($arc->isCircle()) {
                     imageellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
-                    //imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, 0, 360, $lineColor);
                 } else {
                     imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
                 }

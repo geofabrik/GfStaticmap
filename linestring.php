@@ -124,29 +124,26 @@ class Arc {
     }
 
     /**
-     * Get the start and end point of a short part of the arc.
+     * Get an approximation of the arc as a polygon.
      *
      * Returns an array containing the x and y coordinates of the polygons vertices consecutively.
      */
-    public function getTrianglePoints($angle, $isStart, $mapCenterX, $mapCenterY, $mapWidth, $mapHeight, $zoom, $tileSize) {
-        $radiusPx = $this->radiusInPixel($this->center->y, $zoom, $tileSize);
+    public function getArcPoints($mapCenterX, $mapCenterY, $mapWidth, $mapHeight, $zoom, $tileSize) {
+        // Radius intentionally 2 pixel smaller to avoid that the fill appears beyond the outline as well.
+        $radiusPx = $this->radiusInPixel($this->center->y, $zoom, $tileSize) - 2;
         $centerPxX = $this->center->x_on_map($mapWidth, $mapCenterX, $tileSize, $zoom);
         $centerPxY = $this->center->y_on_map($mapHeight, $mapCenterY, $tileSize, $zoom);
-        $ang1 = 360 - $angle;
-        if ($isStart) {
-            $ang2 = $ang1;
-            $ang1 = $ang1 - 10;
-        } else {
-            $ang2 = $ang1 + 10;
+        // It is easier to work with counterclockwise angles here.
+        $ang1 = 360 - $this->start;
+        $ang2 = $ang1 - ($this->end - $this->start);
+        $points = array($centerPxX, $centerPxY);
+        for ($i = $ang2; $i <= $ang1; $i = $i + 0.5) {
+            array_push(
+                $points,
+                $centerPxX + cos(deg2rad($i)) * $radiusPx,
+                $centerPxY - sin(deg2rad($i)) * $radiusPx
+            );
         }
-        $points = array(
-            $centerPxX,
-            $centerPxY,
-            $centerPxX + cos(deg2rad($ang1)) * $radiusPx,
-            $centerPxY - sin(deg2rad($ang1)) * $radiusPx,
-            $centerPxX + cos(deg2rad($ang2)) * $radiusPx,
-            $centerPxY - sin(deg2rad($ang2)) * $radiusPx
-        );
         return $points;
     }
 }
