@@ -326,7 +326,7 @@ Class staticMapLite extends configuredStaticMap {
                 list($key, $value) = explode(':', $pair, 2);
                 $params[trim($key)] = trim($value);
             }
-            if ($paramName === 'paths' && !isset($params['points'])) {
+            if ($paramName === 'path' && !isset($params['points'])) {
                 output_error('Mandatory argument points for path is missing.');
             }
             if (($paramName === 'circle' || $paramName === 'pie') && !isset($params['center'])) {
@@ -352,7 +352,7 @@ Class staticMapLite extends configuredStaticMap {
             }
             $from = 0;
             $to = 360;
-            if ($paramName === 'paths') {
+            if ($paramName === 'path') {
                 $ls = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
                 array_push($this->lines, $ls);
             } elseif ($paramName === 'circle' || $paramName === 'pie') {
