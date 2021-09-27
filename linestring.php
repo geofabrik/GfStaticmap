@@ -101,8 +101,9 @@ class Arc {
     public $lineWidth = 3;
     public $fillColor;
     public $lineColor;
+    public $straightEdges;
 
-    public function __construct($center, $radius, $width, $lineColor, $fillColor, $start=null, $end=null) {
+    public function __construct($center, $radius, $width, $lineColor, $fillColor, $start=null, $end=null, $straightEdges=FALSE) {
         $this->lineWidth = $width;
         $this->center = $center;
         $this->start = $start;
@@ -110,6 +111,14 @@ class Arc {
         $this->radius = $radius;
         $this->lineColor = $lineColor;
         $this->fillColor = $fillColor;
+        $this->straightEdges = $straightEdges;
+    }
+
+    public static function urlParamToBool($value) {
+        if ($value === "1" or $value === "true" or $value === "TRUE") {
+            return TRUE;
+        }
+        return FALSE;
     }
 
     public function isCircle() {
@@ -121,6 +130,34 @@ class Arc {
      */
     public function radiusInPixel($mapCenterLat, $zoomLevel, $tileSize) {
         return $this->radius * pixelPerMeter($mapCenterLat, $zoomLevel, $tileSize);
+    }
+
+    public function getArcPointX($centerX, $angle, $radiusPx) {
+        return $centerX + cos(deg2rad($angle)) * $radiusPx;
+    }
+
+    public function getArcPointY($centerY, $angle, $radiusPx) {
+        return $centerY - sin(deg2rad($angle)) * $radiusPx;
+    }
+
+    /**
+     * Get a line from the center to the start of the arc.
+     */
+    public function getArcStartOrEnd($mapCenterX, $mapCenterY, $mapWidth, $mapHeight, $zoom, $tileSize, $start) {
+        $ang = 0;
+        if ($start) {
+            $ang = 360 - $this->start;
+        } else {
+            $ang1 = 360 - $this->start;
+            $ang = $ang1 - ($this->end - $this->start);
+        }
+        $radiusPx = $this->radiusInPixel($this->center->y, $zoom, $tileSize);
+        $centerPxX = $this->center->x_on_map($mapWidth, $mapCenterX, $tileSize, $zoom);
+        $centerPxY = $this->center->y_on_map($mapHeight, $mapCenterY, $tileSize, $zoom);
+        return array(
+            $this->getArcPointX($centerPxX, $ang, $radiusPx),
+            $this->getArcPointY($centerPxY, $ang, $radiusPx)
+        );
     }
 
     /**
@@ -140,8 +177,8 @@ class Arc {
         for ($i = $ang2; $i <= $ang1; $i = $i + 0.5) {
             array_push(
                 $points,
-                $centerPxX + cos(deg2rad($i)) * $radiusPx,
-                $centerPxY - sin(deg2rad($i)) * $radiusPx
+                $this->getArcPointX($centerPxX, $i, $radiusPx),
+                $this->getArcPointY($centerPxY, $i, $radiusPx)
             );
         }
         return $points;

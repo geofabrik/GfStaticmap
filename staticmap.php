@@ -365,6 +365,10 @@ Class staticMapLite extends configuredStaticMap {
                     // convert angles to clockwise as preferred by libgd
                     $from = 360 - $end;
                     $to = ($end - $start) + $from;
+                    $straightEdges = FALSE;
+                    if (isset($params['straight_edges'])) {
+                        $straightEdges = Arc::urlParamToBool($params['straight_edges']);
+                    }
                 }
                 $radius = $params['radius'];
                 if (!is_numeric($radius) || $radius <= 0) {
@@ -377,7 +381,7 @@ Class staticMapLite extends configuredStaticMap {
                 list($lon, $lat) = explode(' ', substr($centerRaw, 1, strlen($centerRaw) - 2), 2);
                 if (is_numeric($lon) && is_numeric($lat)) {
                     $center = new Point($lon, $lat);
-                    array_push($this->arcs, new Arc($center, $radius, $lineWidth, $lineColor, $fillColor, $from, $to));
+                    array_push($this->arcs, new Arc($center, $radius, $lineWidth, $lineColor, $fillColor, $from, $to, $straightEdges));
                 } else {
                     output_error('A center coordinate of a pie or circle is not a number.');
                 }
@@ -657,6 +661,12 @@ Class staticMapLite extends configuredStaticMap {
                     imageellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
                 } else {
                     imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
+                    if ($arc->straightEdges) {
+                        $arcPoint = $arc->getArcStartOrEnd($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize, TRUE);
+                        imageline($this->image, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
+                        $arcPoint = $arc->getArcStartOrEnd($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize, FALSE);
+                        imageline($this->image, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
+                    }
                 }
             }
         }
