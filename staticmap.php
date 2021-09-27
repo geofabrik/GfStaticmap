@@ -365,7 +365,7 @@ Class staticMapLite extends configuredStaticMap {
                     // convert angles to clockwise as preferred by libgd
                     $from = 360 - $end;
                     $to = ($end - $start) + $from;
-                    $straightEdges = FALSE;
+                    $straightEdges = TRUE;
                     if (isset($params['straight_edges'])) {
                         $straightEdges = Arc::urlParamToBool($params['straight_edges']);
                     }

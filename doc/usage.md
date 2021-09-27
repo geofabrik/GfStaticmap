@@ -130,7 +130,10 @@ You can use the same keys as for circle. In addition, the following keys are man
 
 * `from`: start angle in degree, 0° is located at the three-o'clock position, and the arc is drawn counter-clockwise.
 * `to`: end angle in degree.
-* `straight_edges`: Set to `1`, `true` or `TRUE` if you want the straight edges connecting the arc with the center to be drawn.
+
+Optional keys:
+
+* `straight_edges` (default true): Set to `1`, `true` or `TRUE` if you want the straight edges connecting the arc with the center to be drawn.
 
 ## Examples
 
