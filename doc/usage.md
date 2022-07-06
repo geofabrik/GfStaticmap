@@ -28,7 +28,7 @@ All other parameters control overlays and attribution
 * `markers`: pipe-separated list of markers. Each marker is a comma-separated key-value store. Keys and values are separated by colons (`:`):
 
 ```
-&markers=<marker1>|<marker2>|<marker3
+&markers=<marker1>|<marker2>|<marker3>
 ```
 
 Each marker is a key-value list:
@@ -46,6 +46,10 @@ Following keys are available:
 * `fontcolor`: color of the font as RGB HEX string with 6 or 8 digits and no leading # character (default: 000000FF)
 * `label`: a single character which will be used as label. If this string is empty, the marker will be placed but not labelled. If this parameter is not set, it will be numbered automatically. There must not be more than nine markers which are labelled automatically.
 * `font`: font to be used. See list of available fonts below.
+* `popup`: text to be rendered in a popup
+* `popupsize`: font size of the popup
+* `popupfont`: font to be used by the popup
+* `lineheight`: line height (font size + space between lines) of the popup
 
 Markers are drawn and numbered in the order they occur in this list. Each marker gets its number inside the pin.
 
@@ -54,6 +58,9 @@ Following marker icons are available:
 * `pin`: a pin
 * `marker`: marker icon as used by the Leaflet JavaScript library
 * `ol-marker`: marker icon as used by the OpenLayers 2 JavaScript library, text will be placed outside the icon (and maybe outside the image)
+
+Lines of popup texts have to be wrapped manually. To do so, add newlines (in HTTP requests escaped as `%0A`) manually.
+Commas have to be escaped as `%5C%2C` (`\,`), backslashes as `%5C%5C' (`\\`).
 
 #### Legacy marker syntax
 

@@ -117,6 +117,31 @@ Class staticMapLite extends configuredStaticMap {
     }
 
     /**
+     * Explode string at commas like explode() but with respect for escaped commas.
+     */
+    private function explodeWithEsc($input) {
+        $len = strlen($input);
+        $result = array();
+        $current = '';
+        for ($i = 0; $i < $len; $i++) {
+            if ($i > 0 && $input[$i] === ',' && $input[$i - 1] != '\\') {
+                array_push($result, $current);
+                $current = '';
+            } else if ($i > 0 && $input[$i] === ',' && $input[$i - 1] === '\\') {
+                $current = $current . ',';
+            } else if ($i === 0 && $input[$i] === ',') {
+                array_push($result, '');
+                $current = '';
+            } else if ($i > 0 && $input[$i] === '\\' && $input[$i - 1] == '\\') {
+                $current = $current . '\\';
+            } else {
+                $current = $current . $input[$i];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Parse parameters (query string)
      */
     public function parseParams(){
@@ -201,7 +226,7 @@ Class staticMapLite extends configuredStaticMap {
                 } else {
                     // New syntax.
                     // split up by , into key:value pairs
-                    $kvPairs = explode(',', $marker);
+                    $kvPairs = $this->explodeWithEsc($marker);
                     foreach($kvPairs as $pair) {
                         list($key, $value) = explode(':', $pair, 2);
                         $params[trim($key)] = trim($value);
@@ -231,19 +256,44 @@ Class staticMapLite extends configuredStaticMap {
                     } else if ($markerCount > 9) {
                         output_error('More than 9 unlabelled markers.');
                     }
+                    // marker popup
+                    $markerPopup = null;
+                    if (isset($params['popup'])) {
+                        $markerPopup = $params['popup'];
+                    }
+                    // marker popup
+                    $popupFontSize = 10;
+                    if (isset($params['popupsize'])) {
+                        $popupFontSize = floatval($params['popupsize']);
+                    }
                     // label font
+                    $font = null;
                     if (isset($params['font'])) {
                         $font = $params['font'];
                         if (!is_readable($this->fontBaseDir . $font . '.ttf')) {
                             output_error('Font ' . $font . ' is not available. Please provide a ' .
                                 'font which accessiable for the staticmap API.');
                         }
-                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
-                            $markerColor, $fontColor, $markerLabel, $font);
-                    } else {
-                        $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
-                            $markerColor, $fontColor, $markerLabel);
                     }
+                    // popup font
+                    $fontPopup = null;
+                    if (isset($params['popupfont'])) {
+                        $fontPopup = $params['popupfont'];
+                        if (!is_readable($this->fontBaseDir . $fontPopup . '.ttf')) {
+                            output_error('Font ' . $fontPopup . ' is not available. Please provide a ' .
+                                'font which accessiable for the staticmap API.');
+                        }
+                    }
+                    $lineHeight = 1.2 * $popupFontSize;
+                    if (isset($params['lineheight'])) {
+                        $lineHeight = floatval($params['lineheight']);
+                    }
+                    if ($fontPopup == null) {
+                        $fontPopup = $font;
+                    }
+                    $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
+                        $markerColor, $fontColor, $markerLabel, $markerPopup, $font, $fontPopup, $popupFontSize,
+                        $lineHeight);
                     $markerCount++;
                 } else {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, ' .
@@ -569,6 +619,7 @@ Class staticMapLite extends configuredStaticMap {
         // add the marker to the map image
         imagecopy($this->image, $markerImg, $destX, $destY, 0, 0, imagesx($markerImg),
             imagesy($markerImg)); return array($destX, $destY);
+        return array($destX, $destY);
     }
 
     protected function getMarkerPath($filename) {
@@ -594,15 +645,19 @@ Class staticMapLite extends configuredStaticMap {
             $this->addMarkerOrMask($markerFilename, $mlu, false, $marker);
 
             // determine label width
-            $font = $marker->font != null ? $marker->font : $mlu['font'];
-            $font = $this->fontBaseDir . '/' . $font;
-            $size = imagettfbbox($mlu['textsize'], 0, $font, $marker->label);
+            $marker->setAbsFontPaths($this->fontBaseDir, $mlu['font']);
+            $size = imagettfbbox($mlu['textsize'], 0, $marker->font, $marker->label);
             $width = $size[4] - $size[0];
 
             // place label (1st marker=1 etc)
             $fontColor = $marker->fontColor->allocateForFontNoAlpha($this->image);
             imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2,
-                $destY + $mlu['texty'], $fontColor, $font, $marker->label); };
+                $destY + $mlu['texty'], $fontColor, $marker->font, $marker->label);
+        };
+        if (count($marker->popup) == 0 || (count($marker->popup) == 1 && $marker->popup[0] === '')) {
+            return;
+        }
+        $marker->placePopupBox($this->image, $destX + $mlu['width'] / 2, $destY);
     }
 
     /**
