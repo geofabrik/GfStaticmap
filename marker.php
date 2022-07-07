@@ -125,6 +125,10 @@ Class Marker {
         imagefilledrectangle($img, $x1, $y1-$radius, $x2, $y2+$radius, $white);
     }
 
+    private function hasPopup() {
+        return !(count($this->popup) == 0 || (count($this->popup) == 1 && $this->popup[0] === ''));
+    }
+
     /**
      * Render popup box on the map.
      *
@@ -133,6 +137,9 @@ Class Marker {
      * tipY: Y coordinate of the tip
      */
     public function placePopupBox($imageResource, $tipX, $tipY) {
+        if (!$this->hasPopup()) {
+            return;
+        }
         $textDimensions = $this->getPopupBoxSize();
         $padding = 5;
         $textDimensions[0] += 2 * $padding;

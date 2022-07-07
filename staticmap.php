@@ -653,11 +653,8 @@ Class staticMapLite extends configuredStaticMap {
             $fontColor = $marker->fontColor->allocateForFontNoAlpha($this->image);
             imagettftext($this->image, $mlu['textsize'], 0, $destX + $mlu['textx'] - $width/2,
                 $destY + $mlu['texty'], $fontColor, $marker->font, $marker->label);
+            $marker->placePopupBox($this->image, $destX + $mlu['width'] / 2, $destY);
         };
-        if (count($marker->popup) == 0 || (count($marker->popup) == 1 && $marker->popup[0] === '')) {
-            return;
-        }
-        $marker->placePopupBox($this->image, $destX + $mlu['width'] / 2, $destY);
     }
 
     /**
