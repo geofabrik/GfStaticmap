@@ -129,6 +129,15 @@ Class Marker {
         return !(count($this->popup) == 0 || (count($this->popup) == 1 && $this->popup[0] === ''));
     }
 
+    private function renderFilledPolygon($imageResource, $points, $color) {
+        $version = explode('.', phpversion());
+        if (intval($version[0]) < 8) {
+            imagefilledpolygon($imageResource, $points, count($points), $color);
+        } else {
+            imagefilledpolygon($imageResource, $points, $color);
+        }
+    }
+
     /**
      * Render popup box on the map.
      *
@@ -158,7 +167,7 @@ Class Marker {
         );
         $tipPoints = array($tipX, $tipY, $tipX + $radius, $tipY - $tipHeight, $tipX, $tipY - $tipHeight - $radius);
         $white = imagecolorallocate($imageResource, 255, 255, 255);
-        imagefilledpolygon($imageResource, $tipPoints, $white);
+        $this->renderFilledPolygon($imageResource, $tipPoints, $white);
         $i = 0;
         $y = $tipY - $tipHeight - $textDimensions[1] - $padding - ($lineCount - 1) * $lineDiff + $this->popupFontSize;
         $x = $tipX + $padding;
