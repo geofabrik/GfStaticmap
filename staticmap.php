@@ -406,6 +406,7 @@ Class staticMapLite extends configuredStaticMap {
                 $ls = buildLineString($params['points'], $lineColor, $lineWidth, $fillColor);
                 array_push($this->lines, $ls);
             } elseif ($paramName === 'circle' || $paramName === 'pie') {
+                $straightEdges = TRUE;
                 if ($paramName === 'pie') {
                     $start = $params['from'];
                     $end = $params['to'];
@@ -415,7 +416,6 @@ Class staticMapLite extends configuredStaticMap {
                     // convert angles to clockwise as preferred by libgd
                     $from = 360 - $end;
                     $to = ($end - $start) + $from;
-                    $straightEdges = TRUE;
                     if (isset($params['straight_edges'])) {
                         $straightEdges = Arc::urlParamToBool($params['straight_edges']);
                     }
