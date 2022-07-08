@@ -450,10 +450,17 @@ Class staticMapLite extends configuredStaticMap {
         foreach ($this->markers as $marker) {
             $this->updateBounds($marker->lon, $marker->lat);
             // Get width of marker images
-            $markerLookupResult = $this->markerLookup[$this->maptype.'/'.$marker->image];
+            $markerPath = $this->maptype. '/'. $marker->image;
+            $markerLookupResult = null;
+            if (isset($this->markerLookup[$markerPath])) {
+                $markerLookupResult = $this->markerLookup[$this->maptype.'/'.$marker->image];
+            }
+            if (!$markerLookupResult) {
+                output_error('Marker type \'' . $marker->image . '\' is not available on this instance of GfStaticMap.');
+            }
             $markerImg = imagecreatefrompng($this->getMarkerPath($markerLookupResult['filename']));
             if (!$markerImg) {
-                output_error('Marker type \'' . $marker->image . '\' is not available on this instance of GfStaticMap.');
+                output_error('Marker type \'' . $marker->image . '\' is not available. Marker image is broken or missing.');
             }
             $markerWidth = imagesx($markerImg);
             $markerHeight = imagesy($markerImg);
