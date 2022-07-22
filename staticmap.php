@@ -697,6 +697,14 @@ Class staticMapLite extends configuredStaticMap {
      * Render the circles and pies on the map.
      */
     public function placeArcs() {
+        // Arcs have to be drawn on a separate image due to a bug in GD.
+        // If two semi-transparent arcs are drawn, the second one gets less transparent than the first one and specified.
+        // By drawing on an empty image and copying that onto the destination image, we can solve the issue.
+        $arcsImage = imagecreatetruecolor($this->width, $this->height);
+        imagealphablending($arcsImage, false);
+        $blank = imagecolorallocatealpha($arcsImage, 0, 0, 0, 127.0);
+        imagefill($arcsImage, 0, 0, $blank);
+        imagesavealpha($arcsImage, true);
         foreach($this->arcs as $arc) {
             $centerX = $arc->center->x_on_map($this->width, $this->centerX, $this->tileSize, $this->zoom);
             $centerY = $arc->center->y_on_map($this->height, $this->centerY, $this->tileSize, $this->zoom);
@@ -704,31 +712,33 @@ Class staticMapLite extends configuredStaticMap {
             if (!($arc->fillColor->isTransparent())) {
                 $fillColor = $arc->fillColor->allocate($this->image);
                 if ($arc->isCircle()) {
-                    imagefilledellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $fillColor);
+                    imagefilledellipse($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, $fillColor);
                 } else {
                     // If start or end angle is close to 90 or 270 degree, we need to render the area of the arc around 90/270°
                     // in order to circumvent a bug in GD.
                     // Therefore, we draw the area of the arc as a polygon.
                     $arcPolyPoints = $arc->getArcPoints($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize);
-                    imagefilledpolygon($this->image, $arcPolyPoints, count($arcPolyPoints) / 2, $fillColor);
+                    imagefilledpolygon($arcsImage, $arcPolyPoints, count($arcPolyPoints) / 2, $fillColor);
                 }
             }
             if ($arc->lineWidth > 0) {
                 $lineColor = $arc->lineColor->allocate($this->image);
-                imagesetthickness($this->image, $arc->lineWidth);
                 if ($arc->isCircle()) {
-                    imageellipse($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
+                    imagesetthickness($arcsImage, $arc->lineWidth);
+                    imageellipse($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
                 } else {
-                    imagearc($this->image, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
+                    imagesetthickness($arcsImage, $arc->lineWidth);
+                    imagearc($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
                     if ($arc->straightEdges) {
                         $arcPoint = $arc->getArcStartOrEnd($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize, TRUE);
-                        imageline($this->image, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
+                        imageline($arcsImage, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
                         $arcPoint = $arc->getArcStartOrEnd($this->centerX, $this->centerY, $this->width, $this->height, $this->zoom, $this->tileSize, FALSE);
-                        imageline($this->image, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
+                        imageline($arcsImage, $centerX, $centerY, $arcPoint[0], $arcPoint[1], $lineColor);
                     }
                 }
             }
         }
+        imagecopy($this->image, $arcsImage, 0, 0, 0, 0, $this->width, $this->height);
     }
 
     /**
