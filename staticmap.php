@@ -138,6 +138,7 @@ Class staticMapLite extends configuredStaticMap {
                 $current = $current . $input[$i];
             }
         }
+        if (strlen($current)) array_push($result, $current);
         return $result;
     }
 
