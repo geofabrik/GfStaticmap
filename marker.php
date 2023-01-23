@@ -132,7 +132,7 @@ Class Marker {
     private function renderFilledPolygon($imageResource, $points, $color) {
         $version = explode('.', phpversion());
         if (intval($version[0]) < 8) {
-            imagefilledpolygon($imageResource, $points, count($points), $color);
+            imagefilledpolygon($imageResource, $points, count($points)/2, $color);
         } else {
             imagefilledpolygon($imageResource, $points, $color);
         }
