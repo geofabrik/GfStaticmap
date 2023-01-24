@@ -202,7 +202,7 @@ Class staticMapLite extends configuredStaticMap {
 
         // markers parameter
         if(isset($parameters['markers'])){
-            $markerCount = 1;
+            $nextMarkerLabel = 1;
             // split up into markers
             $markers = preg_split('/%7C|\|/',$parameters['markers']);
             foreach($markers as $marker){
@@ -248,14 +248,16 @@ Class staticMapLite extends configuredStaticMap {
                         $fontColor = Color::colorFromHex($params['fontcolor']);
                     }
                     // parse parameter label or use index of the marker if label is not set
-                    $markerLabel = (string)$markerCount;
+                    $markerLabel = (string)$nextMarkerLabel;
                     if (isset($params['label'])) {
                         if (strlen($params['label']) > 1) {
                             output_error('Labels of markers must be zero or one character long.');
                         }
                         $markerLabel = $params['label'];
-                    } else if ($markerCount > 9) {
-                        output_error('More than 9 unlabelled markers.');
+                    } else {
+                        if ($nextMarkerLabel++ > 9) {
+                            output_error('More than 9 unlabelled markers.');
+                        }
                     }
                     // marker popup
                     $markerPopup = null;
@@ -295,7 +297,6 @@ Class staticMapLite extends configuredStaticMap {
                     $this->markers[] = new Marker($markerLat, $markerLon, $markerImage,
                         $markerColor, $fontColor, $markerLabel, $markerPopup, $font, $fontPopup, $popupFontSize,
                         $lineHeight);
-                    $markerCount++;
                 } else {
                     output_error('One of the mandatory marker arguments is missing: lat, lon, ' .
                         'image');
