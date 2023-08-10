@@ -724,10 +724,11 @@ Class staticMapLite extends configuredStaticMap {
                 }
             }
             if ($arc->lineWidth > 0) {
-                $lineColor = $arc->lineColor->allocate($this->image);
+                $lineColor = $arc->lineColor->allocate($arcsImage);
                 if ($arc->isCircle()) {
                     imagesetthickness($arcsImage, $arc->lineWidth);
-                    imageellipse($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, $lineColor);
+                    // Because imageellipse() ignores imagesetthickness(), we have to use imagearc.
+                    imagearc($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, 0, 360, $lineColor);
                 } else {
                     imagesetthickness($arcsImage, $arc->lineWidth);
                     imagearc($arcsImage, $centerX, $centerY, $diameterPx, $diameterPx, $arc->start, $arc->end, $lineColor);
