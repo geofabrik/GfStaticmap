@@ -12,6 +12,7 @@ of StaticMapLite by Harald Koch but was extended by following features:
 
 See [doc/usage.md](doc/usage.md).
 
+A hosted version of this software is available to [Geofabrik tile server](https://www.geofabrik.de/en/maps/rastertiles.html) customers.
 
 # Setup
 
