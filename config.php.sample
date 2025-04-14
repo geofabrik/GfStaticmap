@@ -164,10 +164,10 @@ Class configuredStaticMap extends staticMapLiteDefaults {
     protected $useMapCache = true;
 
     /**
-     * Shold the map cache be ignored by default?                                                                                      
+     * Should the map cache be ignored by default?                                                                                      
      *
      * This property will be overwritten if the user adds `nocache=true/false`
-     * to the query string if `$this->$ignoreCacheProperty` is se to true.                                                                
+     * to the query string if `$this->$ignoreCacheProperty` is set to true.                                                                
      */
     protected $doNotReadMapCache = false;
 
